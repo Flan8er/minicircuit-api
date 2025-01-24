@@ -1,37 +1,8 @@
-use crate::errors::errors::Error;
+use crate::errors::errors::MWError;
 
 pub enum Response {
     IdentityResponse,
-    Error { value: Error },
-}
-
-pub struct IdentityResponse {
-    command: String,
-    manufacturer: String,
-    isc_board: String,
-    serial_number: String,
-}
-
-pub struct UptimeResponse {
-    command: String,
-    uptime: String,
-}
-
-pub struct VersionResponse {
-    command: String,
-    manufacturer_id: String,
-    major_version: String,
-    minor_version: String,
-    build: String,
-    hotfix: String,
-    date_stamp: String,
-    time_stamp: String,
-}
-
-pub struct StatusResponse {
-    command: String,
-    reserved: String,
-    status_code: String,
+    Error { value: MWError },
 }
 
 pub struct ClearErrorResponse {

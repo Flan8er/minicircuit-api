@@ -1,4 +1,9 @@
-pub enum Error {
+use std::{error::Error, fmt};
+
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum MWError {
     Reserved,
     MaxLengthExceeded,
     TooFewArgs,
@@ -9,113 +14,94 @@ pub enum Error {
     ArgNumber,
     InvalidArg { arg: u16 },
     FailedExe,
-    Unknown,
+    FailedParseResponse,
 }
 
-impl Error {
-    pub fn new(error_code: String) -> Self {
-        let e = error_code;
+// impl from string for mWerror
 
-        if e.contains("ERR01") {
-            Error::Reserved
-        } else if e.contains("ERR02") {
-            Error::MaxLengthExceeded
-        } else if e.contains("ERR03") {
-            Error::TooFewArgs
-        } else if e.contains("ERR04") {
-            Error::TooManyArgs
-        } else if e.contains("ERR05") {
-            Error::WrongMode
-        } else if e.contains("ERR06") {
-            Error::SystemBusy
-        } else if e.contains("ERR07") {
-            Error::SatisfiedNotImpl
-        } else if e.contains("ERR10") {
-            Error::ArgNumber
-        } else if e.contains("ERR11") {
-            Error::InvalidArg { arg: 1 }
-        } else if e.contains("ERR12") {
-            Error::InvalidArg { arg: 2 }
-        } else if e.contains("ERR13") {
-            Error::InvalidArg { arg: 3 }
-        } else if e.contains("ERR14") {
-            Error::InvalidArg { arg: 4 }
-        } else if e.contains("ERR15") {
-            Error::InvalidArg { arg: 5 }
-        } else if e.contains("ERR16") {
-            Error::InvalidArg { arg: 6 }
-        } else if e.contains("ERR17") {
-            Error::InvalidArg { arg: 7 }
-        } else if e.contains("ERR18") {
-            Error::InvalidArg { arg: 8 }
-        } else if e.contains("ERR19") {
-            Error::InvalidArg { arg: 9 }
-        } else if e.contains("ERR7E") {
-            Error::FailedExe
-        } else {
-            Error::Unknown
+impl From<String> for MWError {
+    fn from(value: String) -> Self {
+        todo!();
+        match value.as_str() {
+            "ERR01" => MWError::Reserved,
+            _ => MWError::FailedParseResponse,
         }
     }
 }
 
-pub enum Status {
-    Nominal,
-    Unspecified,
-    PATempHigh,
-    PAShutdownTemp,
-    HighReflection,
-    ShutdownReflection,
-    ResetDetected,
-    ReadoutError,
-    PowerMeasurementFailure,
-    RFOutputFailure,
-    MultiplexerFailure,
-    ExternalShutdown,
-    Reserved,
-    I2CComsFailure,
-    SPIComsFailure,
-    IQConversionError,
-    SOAMeasurementError,
-    WatchdogTimeout,
-    MissingCalibration,
-    SOAHighDissipation,
-    SOAShutdownDissipation,
-    IncompatibleFirmware,
-    InternalPAError,
-    PAResetFailure,
-    HighCurrent,
+impl MWError {
+    pub fn new(error_code: String) -> Self {
+        let e = error_code;
+
+        if e.contains("ERR01") {
+            MWError::Reserved
+        } else if e.contains("ERR02") {
+            MWError::MaxLengthExceeded
+        } else if e.contains("ERR03") {
+            MWError::TooFewArgs
+        } else if e.contains("ERR04") {
+            MWError::TooManyArgs
+        } else if e.contains("ERR05") {
+            MWError::WrongMode
+        } else if e.contains("ERR06") {
+            MWError::SystemBusy
+        } else if e.contains("ERR07") {
+            MWError::SatisfiedNotImpl
+        } else if e.contains("ERR10") {
+            MWError::ArgNumber
+        } else if e.contains("ERR11") {
+            MWError::InvalidArg { arg: 1 }
+        } else if e.contains("ERR12") {
+            MWError::InvalidArg { arg: 2 }
+        } else if e.contains("ERR13") {
+            MWError::InvalidArg { arg: 3 }
+        } else if e.contains("ERR14") {
+            MWError::InvalidArg { arg: 4 }
+        } else if e.contains("ERR15") {
+            MWError::InvalidArg { arg: 5 }
+        } else if e.contains("ERR16") {
+            MWError::InvalidArg { arg: 6 }
+        } else if e.contains("ERR17") {
+            MWError::InvalidArg { arg: 7 }
+        } else if e.contains("ERR18") {
+            MWError::InvalidArg { arg: 8 }
+        } else if e.contains("ERR19") {
+            MWError::InvalidArg { arg: 9 }
+        } else if e.contains("ERR7E") {
+            MWError::FailedExe
+        } else {
+            MWError::FailedParseResponse
+        }
+    }
 }
 
-impl Status {
-    pub fn new(hex_value: u32) -> Self {
-        match hex_value {
-            0 => Self::Nominal,
-            1 => Self::Unspecified,
-            2 => Self::PATempHigh,
-            4 => Self::PAShutdownTemp,
-            8 => Self::HighReflection,
-            10 => Self::ShutdownReflection,
-            20 => Self::ResetDetected,
-            40 => Self::ReadoutError,
-            80 => Self::PowerMeasurementFailure,
-            100 => Self::RFOutputFailure,
-            200 => Self::MultiplexerFailure,
-            400 => Self::ExternalShutdown,
-            800 => Self::Reserved,
-            1000 => Self::I2CComsFailure,
-            2000 => Self::SPIComsFailure,
-            4000 => Self::IQConversionError,
-            8000 => Self::SOAMeasurementError,
-            10000 => Self::WatchdogTimeout,
-            20000 => Self::MissingCalibration,
-            40000 => Self::Reserved,
-            80000 => Self::SOAHighDissipation,
-            100000 => Self::SOAShutdownDissipation,
-            200000 => Self::IncompatibleFirmware,
-            400000 => Self::InternalPAError,
-            800000 => Self::PAResetFailure,
-            1000000 => Self::HighCurrent,
-            _ => Self::Unspecified,
+impl Error for MWError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+}
+
+impl fmt::Display for MWError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            MWError::Reserved => todo!(),
+            MWError::MaxLengthExceeded => todo!(),
+            MWError::TooFewArgs => todo!(),
+            MWError::TooManyArgs => todo!(),
+            MWError::WrongMode => todo!(),
+            MWError::SystemBusy => todo!(),
+            MWError::SatisfiedNotImpl => todo!(),
+            MWError::ArgNumber => todo!(),
+            MWError::InvalidArg { arg } => todo!(),
+            MWError::FailedExe => todo!(),
+            MWError::FailedParseResponse => todo!(),
+            // FrcError::Serialization(ref msg) => write!(f, "Serialization error: {}", msg),
+            // FrcError::UnrecognizedPacket => write!(f, "Fanuc threw an unrecognized weeoe"),
+            // FrcError::FanucErrorCode(ref code) => write!(f, "fanuc returned  error#: {}", code.message()),
+            // FrcError::FailedToSend(ref msg) => write!(f, "SendError: {}", msg),
+            // FrcError::FailedToRecieve(ref msg) => write!(f, "RecieveError: {}", msg),
+            // FrcError::Disconnected() => write!(f, "Fanuc appears to be disconnected"),
+            // FrcError::Initialization(ref msg) => write!(f, "Could not initialize: {}", msg)
         }
     }
 }
