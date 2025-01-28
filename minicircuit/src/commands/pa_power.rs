@@ -1,42 +1,58 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::MWError;
+use crate::{
+    drivers::data_types::types::{Channel, Dbm, Watt},
+    errors::MWError,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetPAPowerWattResponse {
-    /// The uptime in seconds.
-    pub forward: f32,
-    pub reflected: f32,
+    /// The forward power of the power amplifier in watts.
+    pub forward: Watt,
+    /// The reflected power of the power amplifier in watts.
+    pub reflected: Watt,
 }
 
 impl TryFrom<String> for GetPAPowerWattResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
 
-        // let uptime = match parts[0].parse() {
-        //     Ok(uptime) => uptime,
-        //     Err(_) => return Err(MWError::FailedParseResponse),
-        // };
+        // Ensure the input has the expected number of parts
+        if parts.len() != 4 {
+            return Err(Self::Error::FailedParseResponse);
+        }
 
-        Ok(GetPAPowerWattResponse {
-            forward: 3.,
-            reflected: 3.,
-        })
+        let forward: Watt = match parts[2].trim().parse::<f32>() {
+            Ok(value) => Watt::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
+        let reflected: Watt = match parts[3].trim().parse::<f32>() {
+            Ok(value) => Watt::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
+
+        Ok(GetPAPowerWattResponse { forward, reflected })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Returns the forward and reflected power in watts.
 pub struct GetPAPowerWatt {
-    channel: u8,
+    /// Channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for GetPAPowerWatt {
@@ -46,52 +62,70 @@ impl Into<String> for GetPAPowerWatt {
 }
 
 impl GetPAPowerWatt {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for GetPAPowerWatt {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetPAPowerDBMResponse {
-    /// The uptime in seconds.
-    pub forward: f32,
-    pub reflected: f32,
+    /// The forward power of the power amplifier in dBm.
+    pub forward: Dbm,
+    /// The reflected power of the power amplifier in dBm.
+    pub reflected: Dbm,
 }
 
 impl TryFrom<String> for GetPAPowerDBMResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
 
-        // let uptime = match parts[0].parse() {
-        //     Ok(uptime) => uptime,
-        //     Err(_) => return Err(MWError::FailedParseResponse),
-        // };
+        // Ensure the input has the expected number of parts
+        if parts.len() != 4 {
+            return Err(Self::Error::FailedParseResponse);
+        }
 
-        Ok(GetPAPowerDBMResponse {
-            forward: 3.,
-            reflected: 3.,
-        })
+        let forward: Dbm = match parts[2].trim().parse::<f32>() {
+            Ok(value) => Dbm::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
+        let reflected: Dbm = match parts[3].trim().parse::<f32>() {
+            Ok(value) => Dbm::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
+
+        Ok(GetPAPowerDBMResponse { forward, reflected })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Returns the forward and reflected power of the power amplifier in dBm.
 pub struct GetPAPowerDBM {
-    channel: u8,
+    /// Channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for GetPAPowerDBM {
@@ -101,49 +135,48 @@ impl Into<String> for GetPAPowerDBM {
 }
 
 impl GetPAPowerDBM {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for GetPAPowerDBM {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SetPAPowerSetpointWattResponse {
-    /// The uptime in seconds.
-    pub result: String,
+    /// The result of the command (Ok/Err).
+    pub result: Result<(), MWError>,
 }
 
 impl TryFrom<String> for SetPAPowerSetpointWattResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
-
-        let result = match parts[0].parse() {
-            Ok(result) => result,
-            Err(_) => return Err(MWError::FailedParseResponse),
-        };
-
-        Ok(SetPAPowerSetpointWattResponse { result })
+        Ok(SetPAPowerSetpointWattResponse { result: Ok(()) })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Sets the amplifier chain's output power setpoint to the desired value in watts.
 pub struct SetPAPowerSetpointWatt {
-    channel: u8,
-    power: u16,
+    /// Channel identification number.
+    pub channel: Channel,
+    /// Desired power setpoint.
+    pub power: Watt,
 }
 
 impl Into<String> for SetPAPowerSetpointWatt {
@@ -153,42 +186,51 @@ impl Into<String> for SetPAPowerSetpointWatt {
 }
 
 impl SetPAPowerSetpointWatt {
-    pub fn new(self, channel: u8, power: u16) -> Self {
+    /// Returns a handler to call the command.
+    pub fn new(self, channel: Channel, power: Watt) -> Self {
         Self { channel, power }
     }
 }
 
 impl Default for SetPAPowerSetpointWatt {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
         Self {
-            channel: 1,
-            power: 250,
+            channel: Channel::default(),
+            power: Watt::new(250.),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetPAPowerSetpointWattResponse {
-    /// The uptime in seconds.
-    pub power: u16,
+    /// The current output power value for the RF signal in watt.
+    pub power: Watt,
 }
 
 impl TryFrom<String> for GetPAPowerSetpointWattResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
 
-        let power = match parts[0].parse() {
-            Ok(power) => power,
-            Err(_) => return Err(MWError::FailedParseResponse),
+        // Ensure the input has the expected number of parts
+        if parts.len() != 3 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+
+        let power: Watt = match parts[2].trim().parse::<f32>() {
+            Ok(value) => Watt::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
         };
 
         Ok(GetPAPowerSetpointWattResponse { power })
@@ -196,8 +238,10 @@ impl TryFrom<String> for GetPAPowerSetpointWattResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Returns the configured output power setpoint in watts.
 pub struct GetPAPowerSetpointWatt {
-    channel: u8,
+    /// Channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for GetPAPowerSetpointWatt {
@@ -207,49 +251,48 @@ impl Into<String> for GetPAPowerSetpointWatt {
 }
 
 impl GetPAPowerSetpointWatt {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for GetPAPowerSetpointWatt {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SetPAPowerSetpointDBMResponse {
-    /// The uptime in seconds.
-    pub result: String,
+    /// The result of the command (Ok/Err).
+    pub result: Result<(), MWError>,
 }
 
 impl TryFrom<String> for SetPAPowerSetpointDBMResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
-
-        let result = match parts[0].parse() {
-            Ok(result) => result,
-            Err(_) => return Err(MWError::FailedParseResponse),
-        };
-
-        Ok(SetPAPowerSetpointDBMResponse { result })
+        Ok(SetPAPowerSetpointDBMResponse { result: Ok(()) })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Sets the output power setpoint to the desired value in dBm.
 pub struct SetPAPowerSetpointDBM {
-    channel: u8,
-    power: u8,
+    /// Channel identification number.
+    pub channel: Channel,
+    /// Desired power value for the RF signal in dBm.
+    pub power: Dbm,
 }
 
 impl Into<String> for SetPAPowerSetpointDBM {
@@ -259,42 +302,51 @@ impl Into<String> for SetPAPowerSetpointDBM {
 }
 
 impl SetPAPowerSetpointDBM {
-    pub fn new(self, channel: u8, power: u8) -> Self {
+    /// Returns a handler to call the command.
+    pub fn new(self, channel: Channel, power: Dbm) -> Self {
         Self { channel, power }
     }
 }
 
 impl Default for SetPAPowerSetpointDBM {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
         Self {
-            channel: 1,
-            power: 50,
+            channel: Channel::default(),
+            power: Dbm::new(50.),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetPAPowerSetpointDBMResponse {
-    /// The uptime in seconds.
-    pub power: u16,
+    /// The current power value for the RF signal in dBm.
+    pub power: Dbm,
 }
 
 impl TryFrom<String> for GetPAPowerSetpointDBMResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
 
-        let power = match parts[0].parse() {
-            Ok(power) => power,
-            Err(_) => return Err(MWError::FailedParseResponse),
+        // Ensure the input has the expected number of parts
+        if parts.len() != 3 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+
+        let power: Dbm = match parts[2].trim().parse::<f32>() {
+            Ok(value) => Dbm::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
         };
 
         Ok(GetPAPowerSetpointDBMResponse { power })
@@ -302,8 +354,10 @@ impl TryFrom<String> for GetPAPowerSetpointDBMResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Returns the configured output power setpoint in dBm.
 pub struct GetPAPowerSetpointDBM {
-    channel: u8,
+    /// Channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for GetPAPowerSetpointDBM {
@@ -313,13 +367,18 @@ impl Into<String> for GetPAPowerSetpointDBM {
 }
 
 impl GetPAPowerSetpointDBM {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for GetPAPowerSetpointDBM {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }

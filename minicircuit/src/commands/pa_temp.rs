@@ -1,29 +1,39 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::MWError;
+use crate::{
+    drivers::data_types::types::{Channel, Temperature},
+    errors::MWError,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetPATempResponse {
-    /// The uptime in seconds.
-    pub temperature: u16,
+    /// The temperature of the power amplifier (PA).
+    pub temperature: Temperature,
 }
 
 impl TryFrom<String> for GetPATempResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
 
-        let temperature = match parts[0].parse() {
-            Ok(temperature) => temperature,
-            Err(_) => return Err(MWError::FailedParseResponse),
+        // Ensure the input has the expected number of parts
+        if parts.len() != 3 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+
+        let temperature: Temperature = match parts[2].trim().parse::<u8>() {
+            Ok(value) => Temperature::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
         };
 
         Ok(GetPATempResponse { temperature })
@@ -31,9 +41,10 @@ impl TryFrom<String> for GetPATempResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-/// This command returns the temperature of the power amplifier (PA).
+/// Returns the temperature of the power amplifier (PA).
 pub struct GetPATemp {
-    channel: u8,
+    /// Channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for GetPATemp {
@@ -43,13 +54,18 @@ impl Into<String> for GetPATemp {
 }
 
 impl GetPATemp {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for GetPATemp {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }

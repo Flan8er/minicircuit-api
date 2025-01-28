@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::MWError;
+use crate::{drivers::data_types::types::Channel, errors::MWError};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// The current version of the firmware.
 pub struct VersionResponse {
     // Firmware developer identifier.
     pub manufacturer_id: String,
@@ -24,38 +25,71 @@ impl TryFrom<String> for VersionResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 7 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        let manufacturer_id = parts[0].to_string();
-        let major_version = parts[1].to_string();
-        let minor_version = parts[2].to_string();
-        let build = parts[3].to_string();
-        let hotfix = Some(parts[4].to_string());
-        let date_stamp = parts[5].to_string();
-        let time_stamp = parts[6].to_string();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
 
-        todo!();
+        // Ensure the input has the expected number of parts
+        let parsed_response = match parts.len() {
+            8 => parse_with_hotfix(parts),
+            9 => parse_without_hotfix(parts),
+            _ => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
 
-        Ok(VersionResponse {
-            manufacturer_id,
-            major_version,
-            minor_version,
-            build,
-            hotfix,
-            date_stamp,
-            time_stamp,
-        })
+        Ok(parsed_response)
+    }
+}
+
+fn parse_with_hotfix(parts: Vec<&str>) -> VersionResponse {
+    let manufacturer_id = parts[2].trim().to_string();
+    let major_version = parts[3].trim().to_string();
+    let minor_version = parts[4].trim().to_string();
+    let build = parts[5].trim().to_string();
+    let hotfix = parts[6].trim().to_string();
+    let date_stamp = parts[7].trim().to_string();
+    let time_stamp = parts[8].trim().to_string();
+
+    VersionResponse {
+        manufacturer_id,
+        major_version,
+        minor_version,
+        build,
+        hotfix: Some(hotfix),
+        date_stamp,
+        time_stamp,
+    }
+}
+fn parse_without_hotfix(parts: Vec<&str>) -> VersionResponse {
+    let manufacturer_id = parts[2].trim().to_string();
+    let major_version = parts[3].trim().to_string();
+    let minor_version = parts[4].trim().to_string();
+    let build = parts[5].trim().to_string();
+    let date_stamp = parts[6].trim().to_string();
+    let time_stamp = parts[7].trim().to_string();
+
+    VersionResponse {
+        manufacturer_id,
+        major_version,
+        minor_version,
+        build,
+        hotfix: None,
+        date_stamp,
+        time_stamp,
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Returns the current version of the firmware.
 pub struct GetVersion {
-    channel: u8,
+    /// Desired channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for GetVersion {
@@ -65,13 +99,18 @@ impl Into<String> for GetVersion {
 }
 
 impl GetVersion {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for GetVersion {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }

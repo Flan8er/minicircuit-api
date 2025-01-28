@@ -1,56 +1,51 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    drivers::data_types::types::{Channel, DutyCycle, Frequency},
+    drivers::data_types::types::{Channel, CorrectionFactor, Frequency, Percentage},
     errors::MWError,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SetPWMDutyCycleResponse {
-    /// The uptime in seconds.
-    pub result: String,
+    /// The result of the command (Ok/Err).
+    pub result: Result<(), MWError>,
 }
 
 impl TryFrom<String> for SetPWMDutyCycleResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
-
-        let result = match parts[0].parse() {
-            Ok(result) => result,
-            Err(_) => return Err(MWError::FailedParseResponse),
-        };
-
-        Ok(SetPWMDutyCycleResponse { result })
+        Ok(SetPWMDutyCycleResponse { result: Ok(()) })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Sets the PWM duty cycle between 0% and 100%.
+///
+/// This command doubles as a PWM ON/OFF switch. Setting the duty cycle
+/// to 100% is the same as turning PWN off entirely, thus there is no
+/// dedicated PWM ON/OFF command.
 pub struct SetPWMDutyCycle {
-    channel: Channel,
-    duty_cycle: DutyCycle,
+    /// Channel identification number.
+    pub channel: Channel,
+    /// A value between 0 and 100 that sets the duty cycle in percent.
+    pub duty_cycle: Percentage,
 }
 
 impl Into<String> for SetPWMDutyCycle {
     fn into(self) -> String {
-        format!(
-            "$DCS,{},{}",
-            Into::<u8>::into(self.channel),
-            Into::<u8>::into(self.duty_cycle)
-        )
+        format!("$DCS,{},{}", self.channel, self.duty_cycle)
     }
 }
 
 impl SetPWMDutyCycle {
-    pub fn new(self, channel: Channel, duty_cycle: DutyCycle) -> Self {
+    /// Returns a handler to call the command using the given inputs.
+    pub fn new(self, channel: Channel, duty_cycle: Percentage) -> Self {
         Self {
             channel,
             duty_cycle,
@@ -59,61 +54,94 @@ impl SetPWMDutyCycle {
 }
 
 impl Default for SetPWMDutyCycle {
+    /// Returns the default handler to call the command.
+    /// By default, duty cycle is set to 100%.
     fn default() -> Self {
         Self {
             channel: Channel::default(),
-            duty_cycle: DutyCycle::default(),
+            duty_cycle: Percentage::new(100),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetPWMSettingsResponse {
-    /// The uptime in seconds.
+    /// The current PWM frequency.
     pub frequency: Frequency,
-    pub correction_factor: u8,
-    pub duty_cycle: DutyCycle,
+    /// The current correction factor for the PWM signal.
+    pub correction_factor: CorrectionFactor,
+    /// The current duty cycle percentage value.
+    pub duty_cycle: Percentage,
 }
 
 impl TryFrom<String> for GetPWMSettingsResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
+
+        // Ensure the input has the expected number of parts
+        if parts.len() != 11 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+
+        let frequency: Frequency = match parts[2].trim().parse::<u16>() {
+            Ok(value) => Frequency::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
+        let correction_factor: CorrectionFactor = match parts[3].trim().parse::<u8>() {
+            Ok(value) => CorrectionFactor::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
+        let duty_cycle: Percentage = match parts[10].trim().parse::<u8>() {
+            Ok(value) => Percentage::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
 
         Ok(GetPWMSettingsResponse {
-            frequency: todo!(),
-            correction_factor: todo!(),
-            duty_cycle: todo!(),
+            frequency,
+            correction_factor,
+            duty_cycle,
         })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Returns all the settings relating to PWM.
 pub struct GetPWMSettings {
-    channel: Channel,
+    /// Channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for GetPWMSettings {
     fn into(self) -> String {
-        format!("$DCG,{}", Into::<u8>::into(self.channel),)
+        format!("$DCG,{}", self.channel)
     }
 }
 
 impl GetPWMSettings {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
     pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for GetPWMSettings {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
         Self {
             channel: Channel::default(),

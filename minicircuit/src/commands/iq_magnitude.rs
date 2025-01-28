@@ -1,45 +1,42 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::MWError;
+use crate::{
+    drivers::data_types::types::{Channel, Percentage},
+    errors::MWError,
+};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SetQIMagPercentResponse {
-    /// The uptime in seconds.
-    pub result: String,
+    /// The result of the command (Ok/Err).
+    pub result: Result<(), MWError>,
 }
 
 impl TryFrom<String> for SetQIMagPercentResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
-
-        let result = match parts[0].parse() {
-            Ok(result) => result,
-            Err(_) => return Err(MWError::FailedParseResponse),
-        };
-
-        Ok(SetQIMagPercentResponse { result })
+        Ok(SetQIMagPercentResponse { result: Ok(()) })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-/// TO USE THIS COMMAND, AUTO-GAIN MUST BE DISABLED FIRST
+/// TO USE THIS COMMAND, AUTO-GAIN MUST BE DISABLED FIRST (command not documented)
+///
 /// This command sets the magnitude setting of the IQ modulator, which regulates the ISC board's power output.
 /// The higher the value, the higher the power output.
+///
 /// Remark: Under normal conditions, both the VGA and the IQ modulator are used to regulate the power output of the ISC board,
 /// thus the actual power output is a combination of both.
 pub struct SetQIMagPercent {
-    channel: u8,
+    /// Channel identification number.
+    pub channel: Channel,
     /// The desired magnitude of the IQ modulator in percent (%).
-    magnitude: u8,
+    pub magnitude: Percentage,
 }
 
 impl Into<String> for SetQIMagPercent {
@@ -50,42 +47,50 @@ impl Into<String> for SetQIMagPercent {
 
 impl SetQIMagPercent {
     /// Magnitude in percent (%) in range from 0-100
-    pub fn new(self, channel: u8, magnitude: u8) -> Self {
+    pub fn new(self, channel: Channel, magnitude: Percentage) -> Self {
         Self { channel, magnitude }
     }
 }
 
 impl Default for SetQIMagPercent {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
         Self {
-            channel: 1,
-            magnitude: 75,
+            channel: Channel::default(),
+            magnitude: Percentage::new(75),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetQIMagPercentResponse {
-    /// The uptime in seconds.
-    pub magnitude: u8,
+    /// The current magnitude configuration of the IQ modulator in percent.
+    pub magnitude: Percentage,
 }
 
 impl TryFrom<String> for GetQIMagPercentResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
 
-        let magnitude = match parts[0].parse() {
-            Ok(magnitude) => magnitude,
-            Err(_) => return Err(MWError::FailedParseResponse),
+        // Ensure the input has the expected number of parts
+        if parts.len() != 3 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+
+        let magnitude: Percentage = match parts[2].trim().parse::<u8>() {
+            Ok(value) => Percentage::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
         };
 
         Ok(GetQIMagPercentResponse { magnitude })
@@ -93,8 +98,10 @@ impl TryFrom<String> for GetQIMagPercentResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Gets the magnitude of the IQ modulator.
 pub struct GetQIMagPercent {
-    channel: u8,
+    /// Channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for GetQIMagPercent {
@@ -104,13 +111,18 @@ impl Into<String> for GetQIMagPercent {
 }
 
 impl GetQIMagPercent {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for GetQIMagPercent {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }

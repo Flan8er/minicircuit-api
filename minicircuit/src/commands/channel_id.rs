@@ -1,39 +1,38 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::MWError;
+use crate::{drivers::data_types::types::Channel, errors::MWError};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SetChannelIDResponse {
-    /// The result of the command (Ok/Err)
-    pub result: String,
+    /// The result of the command (Ok/Err).
+    pub result: Result<(), MWError>,
 }
 
 impl TryFrom<String> for SetChannelIDResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 1 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
-
-        let result = match parts[0].parse() {
-            Ok(result) => result,
-            Err(_) => return Err(MWError::FailedParseResponse),
-        };
-
-        Ok(SetChannelIDResponse { result })
+        Ok(SetChannelIDResponse { result: Ok(()) })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Assigns a channel identification number to the specified ISC board.
+///
+/// Every ISC board is assigned a numeric value as a challen identifier for communication.
+/// The default value of the identifier is `1`, which serves its purpose in single-channel systems.
+/// In setups that deploy more than one ISC board is often necessary to assign a unique number to each individual board beforehand,
+/// so that they can all be commanded as seperate entities. An ISC board will not respond to commands written for a different channel.
 pub struct SetChannelID {
-    channel: u8,
-    new_channel: u8,
+    /// Channel identification number to change.
+    pub channel: Channel,
+    /// New desured channel identification number.
+    pub new_channel: Channel,
 }
 
 impl Into<String> for SetChannelID {
@@ -43,19 +42,18 @@ impl Into<String> for SetChannelID {
 }
 
 impl SetChannelID {
-    pub fn new(self, channel: u8, new_channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    pub fn new(self, channel: Channel, new_channel: Channel) -> Self {
         Self {
             channel,
             new_channel,
         }
     }
-}
 
-impl Default for SetChannelID {
-    fn default() -> Self {
+    pub fn return_to_default(self, current_channel: Channel) -> Self {
         Self {
-            channel: 1,
-            new_channel: 1,
+            channel: current_channel,
+            new_channel: Channel::default(),
         }
     }
 }
@@ -63,25 +61,32 @@ impl Default for SetChannelID {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetChannelIDResponse {
     /// Channel identification number.
-    pub channel: u8,
+    pub channel: Channel,
 }
 
 impl TryFrom<String> for GetChannelIDResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 1 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
 
-        let channel = match parts[0].parse() {
-            Ok(result) => result,
-            Err(_) => return Err(MWError::FailedParseResponse),
+        // Ensure the input has the expected number of parts
+        if parts.len() != 2 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+
+        let channel: Channel = match parts[1].trim().parse::<u8>() {
+            Ok(value) => Channel::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
         };
 
         Ok(GetChannelIDResponse { channel })

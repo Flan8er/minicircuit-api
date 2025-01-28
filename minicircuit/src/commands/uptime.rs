@@ -1,38 +1,55 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::MWError;
+use crate::{
+    drivers::data_types::types::{Channel, Seconds},
+    errors::MWError,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// The uptime of the ISC board since its initialization. The uptime count restarts when the board is
+/// reset.
 pub struct GetUptimeResponse {
-    /// The uptime in seconds.
-    pub uptime: u64,
+    /// The uptime of the board in seconds.
+    pub uptime: Seconds,
 }
 
 impl TryFrom<String> for GetUptimeResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
 
-        let uptime = match parts[0].parse() {
-            Ok(uptime) => uptime,
-            Err(_) => return Err(MWError::FailedParseResponse),
+        // Ensure the input has the expected number of parts
+        if parts.len() != 3 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+
+        let uptime = match parts[2].trim().parse::<u64>() {
+            Ok(value) => value,
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
         };
 
-        Ok(GetUptimeResponse { uptime })
+        Ok(GetUptimeResponse {
+            uptime: Seconds::new(uptime),
+        })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Returns the uptime of the ISC board since its initialization.
+/// The uptime count restarts when the board is reset.
 pub struct GetUptime {
-    channel: u8,
+    /// Desired channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for GetUptime {
@@ -42,13 +59,18 @@ impl Into<String> for GetUptime {
 }
 
 impl GetUptime {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for GetUptime {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }

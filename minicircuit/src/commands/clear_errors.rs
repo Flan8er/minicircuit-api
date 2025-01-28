@@ -1,38 +1,32 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::MWError;
+use crate::{drivers::data_types::types::Channel, errors::MWError};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClearErrorsResponse {
-    /// The result of the command (Ok/Err)
-    pub result: String,
+    /// The result of the command (Ok/Err).
+    pub result: Result<(), MWError>,
 }
 
 impl TryFrom<String> for ClearErrorsResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 1 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
-
-        let result = match parts[0].parse() {
-            Ok(result) => result,
-            Err(_) => return Err(MWError::FailedParseResponse),
-        };
-
-        Ok(ClearErrorsResponse { result })
+        Ok(ClearErrorsResponse { result: Ok(()) })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Clears the error state of the ISC board and resets the protective systems
+/// that impede the board while an error is present.
 pub struct ClearErrors {
-    channel: u8,
+    /// Desired channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for ClearErrors {
@@ -42,13 +36,18 @@ impl Into<String> for ClearErrors {
 }
 
 impl ClearErrors {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for ClearErrors {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }

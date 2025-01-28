@@ -1,39 +1,40 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::MWError;
+use crate::{
+    drivers::data_types::types::{Channel, Dbm},
+    errors::MWError,
+};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SetISCPowerOutputResponse {
-    /// The uptime in seconds.
-    pub result: String,
+    /// The result of the command (Ok/Err).
+    pub result: Result<(), MWError>,
 }
 
 impl TryFrom<String> for SetISCPowerOutputResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
-
-        let result = match parts[0].parse() {
-            Ok(result) => result,
-            Err(_) => return Err(MWError::FailedParseResponse),
-        };
-
-        Ok(SetISCPowerOutputResponse { result })
+        Ok(SetISCPowerOutputResponse { result: Ok(()) })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// To use this command, auto-gain must be disabled (command not documented)
+///
+/// Provides a coarse method to regulate the small signal output power of the
+/// ISC board by automatically configuring the values of the VGA and IQ modulator
+/// to the roughly desired dBm value.
 pub struct SetISCPowerOutput {
-    channel: u8,
-    power_dbm: f32,
+    /// Channel identification number.
+    pub channel: Channel,
+    /// The desired small signal output in dBm.
+    pub power_dbm: Dbm,
 }
 
 impl Into<String> for SetISCPowerOutput {
@@ -43,16 +44,18 @@ impl Into<String> for SetISCPowerOutput {
 }
 
 impl SetISCPowerOutput {
-    pub fn new(self, channel: u8, power_dbm: f32) -> Self {
+    /// Returns a handler to call the command with specified inputs.
+    pub fn new(self, channel: Channel, power_dbm: Dbm) -> Self {
         Self { channel, power_dbm }
     }
 }
 
 impl Default for SetISCPowerOutput {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
         Self {
-            channel: 1,
-            power_dbm: 20.,
+            channel: Channel::default(),
+            power_dbm: Dbm::new(20.),
         }
     }
 }

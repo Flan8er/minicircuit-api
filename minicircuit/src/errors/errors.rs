@@ -1,77 +1,68 @@
-use std::{error::Error, fmt};
-
 use serde::{Deserialize, Serialize};
+use std::{error::Error, fmt};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum MWError {
+    /// Error code is reserved.
     Reserved,
+    /// The serial message exceeded the maximum length.
     MaxLengthExceeded,
+    /// The serial message had too few arguments.
     TooFewArgs,
+    /// The serial message had too many arguments.
     TooManyArgs,
+    /// The system could not accept this message is the current mode.
     WrongMode,
+    /// The system was busy and cannot process this message at this time.
     SystemBusy,
+    /// The message was recognized but is not yet implemented in the codebase.
     SatisfiedNotImpl,
+    /// An argument was in error with the lower nibble indicating the argument number.
     ArgNumber,
+    /// Argument was invalid / out of range.
     InvalidArg { arg: u16 },
+    /// Command execution failed.
     FailedExe,
+    /// An error occurred that is not covered by any of the other error codes.
+    Unknown,
+    /// An error occurred parsing the response to the given command.
     FailedParseResponse,
 }
 
-// impl from string for mWerror
-
 impl From<String> for MWError {
     fn from(value: String) -> Self {
-        todo!();
-        match value.as_str() {
-            "ERR01" => MWError::Reserved,
+        let trimmed_error = trim_before_err(&value).trim();
+
+        match trimmed_error {
+            "ERR01" => Self::Reserved,
+            "ERR02" => Self::MaxLengthExceeded,
+            "ERR03" => Self::TooFewArgs,
+            "ERR04" => Self::TooManyArgs,
+            "ERR05" => Self::WrongMode,
+            "ERR06" => Self::SystemBusy,
+            "ERR07" => Self::SatisfiedNotImpl,
+            "ERR10" => Self::ArgNumber,
+            "ERR11" => Self::InvalidArg { arg: 1 },
+            "ERR12" => Self::InvalidArg { arg: 2 },
+            "ERR13" => Self::InvalidArg { arg: 3 },
+            "ERR14" => Self::InvalidArg { arg: 4 },
+            "ERR15" => Self::InvalidArg { arg: 5 },
+            "ERR16" => Self::InvalidArg { arg: 6 },
+            "ERR17" => Self::InvalidArg { arg: 7 },
+            "ERR18" => Self::InvalidArg { arg: 8 },
+            "ERR19" => Self::InvalidArg { arg: 9 },
+            "ERR7E" => Self::FailedExe,
+            "ERR7F" => Self::Unknown,
             _ => MWError::FailedParseResponse,
         }
     }
 }
 
-impl MWError {
-    pub fn new(error_code: String) -> Self {
-        let e = error_code;
-
-        if e.contains("ERR01") {
-            MWError::Reserved
-        } else if e.contains("ERR02") {
-            MWError::MaxLengthExceeded
-        } else if e.contains("ERR03") {
-            MWError::TooFewArgs
-        } else if e.contains("ERR04") {
-            MWError::TooManyArgs
-        } else if e.contains("ERR05") {
-            MWError::WrongMode
-        } else if e.contains("ERR06") {
-            MWError::SystemBusy
-        } else if e.contains("ERR07") {
-            MWError::SatisfiedNotImpl
-        } else if e.contains("ERR10") {
-            MWError::ArgNumber
-        } else if e.contains("ERR11") {
-            MWError::InvalidArg { arg: 1 }
-        } else if e.contains("ERR12") {
-            MWError::InvalidArg { arg: 2 }
-        } else if e.contains("ERR13") {
-            MWError::InvalidArg { arg: 3 }
-        } else if e.contains("ERR14") {
-            MWError::InvalidArg { arg: 4 }
-        } else if e.contains("ERR15") {
-            MWError::InvalidArg { arg: 5 }
-        } else if e.contains("ERR16") {
-            MWError::InvalidArg { arg: 6 }
-        } else if e.contains("ERR17") {
-            MWError::InvalidArg { arg: 7 }
-        } else if e.contains("ERR18") {
-            MWError::InvalidArg { arg: 8 }
-        } else if e.contains("ERR19") {
-            MWError::InvalidArg { arg: 9 }
-        } else if e.contains("ERR7E") {
-            MWError::FailedExe
-        } else {
-            MWError::FailedParseResponse
-        }
+fn trim_before_err(input: &str) -> &str {
+    if let Some(pos) = input.find("ERR") {
+        &input[pos..]
+    } else {
+        input // If "ERR" is not found, return the original string
     }
 }
 
@@ -84,24 +75,36 @@ impl Error for MWError {
 impl fmt::Display for MWError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            MWError::Reserved => todo!(),
-            MWError::MaxLengthExceeded => todo!(),
-            MWError::TooFewArgs => todo!(),
-            MWError::TooManyArgs => todo!(),
-            MWError::WrongMode => todo!(),
-            MWError::SystemBusy => todo!(),
-            MWError::SatisfiedNotImpl => todo!(),
-            MWError::ArgNumber => todo!(),
-            MWError::InvalidArg { arg } => todo!(),
-            MWError::FailedExe => todo!(),
-            MWError::FailedParseResponse => todo!(),
-            // FrcError::Serialization(ref msg) => write!(f, "Serialization error: {}", msg),
-            // FrcError::UnrecognizedPacket => write!(f, "Fanuc threw an unrecognized weeoe"),
-            // FrcError::FanucErrorCode(ref code) => write!(f, "fanuc returned  error#: {}", code.message()),
-            // FrcError::FailedToSend(ref msg) => write!(f, "SendError: {}", msg),
-            // FrcError::FailedToRecieve(ref msg) => write!(f, "RecieveError: {}", msg),
-            // FrcError::Disconnected() => write!(f, "Fanuc appears to be disconnected"),
-            // FrcError::Initialization(ref msg) => write!(f, "Could not initialize: {}", msg)
+            Self::Reserved => write!(f, "Reserved error."),
+            Self::MaxLengthExceeded => write!(f, "The serial message exceeded the maximum length."),
+            Self::TooFewArgs => write!(f, "The serial message had too few arguments."),
+            Self::TooManyArgs => write!(f, "The serial message had too many arguments."),
+            Self::WrongMode => write!(
+                f,
+                "The system could not accept this message is the current mode."
+            ),
+            Self::SystemBusy => write!(
+                f,
+                "The system was busy and cannot process this message at this time."
+            ),
+            Self::SatisfiedNotImpl => write!(
+                f,
+                "The message was recognized but is not yet implemented in the codebase."
+            ),
+            Self::ArgNumber => write!(
+                f,
+                "An argument was in error with the lower nibble indicating the argument number."
+            ),
+            Self::InvalidArg { arg } => write!(f, "Argument {} was invalid / out of range.", arg),
+            Self::FailedExe => write!(f, "Command execution failed."),
+            Self::Unknown => write!(
+                f,
+                "An error occurred that is not covered by any of the other error codes."
+            ),
+            Self::FailedParseResponse => write!(
+                f,
+                "An error occurred parsing the response to the given command."
+            ),
         }
     }
 }

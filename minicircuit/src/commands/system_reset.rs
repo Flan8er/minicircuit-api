@@ -1,38 +1,35 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::MWError;
+use crate::{drivers::data_types::types::Channel, errors::MWError};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ResetSystemResponse {
-    /// The result of the command (Ok/Err)
-    pub result: String,
+    /// The result of the command (Ok/Err).
+    pub result: Result<(), MWError>,
 }
 
 impl TryFrom<String> for ResetSystemResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
-
-        let result = match parts[0].parse() {
-            Ok(result) => result,
-            Err(_) => return Err(MWError::FailedParseResponse),
-        };
-
-        Ok(ResetSystemResponse { result })
+        Ok(ResetSystemResponse { result: Ok(()) })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Executes a reset of the ISC board.
+/// All board settings will return to their default states.
+///
+/// Following a reset, whether intentional or as the result of a fault,
+/// the `reset detected` error flag (0x20) will be raised.
 pub struct ResetSystem {
-    channel: u8,
+    /// Channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for ResetSystem {
@@ -42,13 +39,18 @@ impl Into<String> for ResetSystem {
 }
 
 impl ResetSystem {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for ResetSystem {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }

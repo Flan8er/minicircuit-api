@@ -1,45 +1,57 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::MWError;
+use crate::{drivers::data_types::types::Channel, errors::MWError};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// List of status codes stored on the ISC board.
 pub struct StatusResponse {
-    /// Reserved value which will always return 0.
-    reserved: u8,
-    /// Hexadecimal value representing various errors which have occurred on the ISCboard.
-    pub status_code: Vec<Status>,
+    pub status_codes: Vec<Status>,
 }
 
 impl TryFrom<String> for StatusResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 2 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
 
-        let status_code = match parts[0].parse() {
-            Ok(code) => code,
-            Err(_) => return Err(MWError::FailedParseResponse),
+        // Ensure the input has the expected number of parts
+        if parts.len() != 4 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+
+        let hex_status_code = match parts[3].trim().parse::<u32>() {
+            Ok(value) => value,
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
         };
 
-        let decoded_statuses = Status::from_hex_code(status_code);
+        let status_codes: Vec<Status> = Status::from_hex_code(hex_status_code);
 
-        Ok(StatusResponse {
-            reserved: 0,
-            status_code: decoded_statuses,
-        })
+        Ok(StatusResponse { status_codes })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Used to monitor the status of the ISC board.
+///
+/// ISC boards have a safety feature called the 'Safe Operating Area' (SOA).
+/// If a fault occurs during operation, the SOA raises an error and takes action to protect the system.
+/// This is indicated by a red LED on the board.
+/// An error on the ISC board is accompanied by an informative error code which can be used to trace the problem.
+///
+/// To ensure the code can be viewed it stays in memory until manually cleared away.
+/// For safety reasons some errors block the RF power output of the ISC board until cleared (ClearErrors).
 pub struct GetStatus {
-    channel: u8,
+    /// Desired channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for GetStatus {
@@ -49,22 +61,29 @@ impl Into<String> for GetStatus {
 }
 
 impl GetStatus {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for GetStatus {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Status {
-    /// A hexadecimal value of the error on the ISCboard
+    /// A hexadecimal value of the error on the ISC board.
     pub error_code: u32,
+    /// The status of the ISC board.
     pub status: String,
+    /// A description of the status.
     pub description: String,
 }
 

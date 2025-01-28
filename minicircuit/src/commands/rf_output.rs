@@ -1,40 +1,39 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::MWError;
+use crate::{drivers::data_types::types::Channel, errors::MWError};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SetRFOutputResponse {
-    /// The result of the command (Ok/Err)
-    pub result: String,
+    /// The result of the command (Ok/Err).
+    pub result: Result<(), MWError>,
 }
 
 impl TryFrom<String> for SetRFOutputResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
-
-        let result = match parts[0].parse() {
-            Ok(result) => result,
-            Err(_) => return Err(MWError::FailedParseResponse),
-        };
-
-        Ok(SetRFOutputResponse { result })
+        Ok(SetRFOutputResponse { result: Ok(()) })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Turns RF output of the ISC board ON or OFF.
+///
+/// Board is turned off by default.
 pub struct SetRFOutput {
-    channel: u8,
-    /// Desired setting of the RF output (on or off)
-    enabled: bool,
+    /// Channel identification number.
+    pub channel: Channel,
+    /// Desired setting of the RF output.
+    ///
+    /// True = ON
+    ///
+    /// False = OFF (default)
+    pub enabled: bool,
 }
 
 impl Into<String> for SetRFOutput {
@@ -48,15 +47,19 @@ impl Into<String> for SetRFOutput {
 }
 
 impl SetRFOutput {
-    pub fn new(self, channel: u8, enabled: bool) -> Self {
+    /// Returns a handler to call the command with specified inputs.
+    pub fn new(self, channel: Channel, enabled: bool) -> Self {
         Self { channel, enabled }
     }
 }
 
 impl Default for SetRFOutput {
+    /// Returns the default handler to call the command.
+    ///
+    /// By default, output is disabled.
     fn default() -> Self {
         Self {
-            channel: 1,
+            channel: Channel::default(),
             enabled: false,
         }
     }
@@ -72,28 +75,39 @@ impl TryFrom<String> for GetRFOutputResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
 
-        // let result = match parts[0].parse() {
-        //     Ok(result) => result,
-        //     Err(_) => return Err(MWError::FailedParseResponse),
-        // };
+        // Ensure the input has the expected number of parts
+        if parts.len() != 3 {
+            return Err(Self::Error::FailedParseResponse);
+        }
 
-        // Hardcoding this for now but go back and change later
-        Ok(GetRFOutputResponse { enabled: true })
+        let enabled: bool = match parts[2].trim().parse::<u8>() {
+            Ok(value) => match value {
+                1 => true,
+                _ => false,
+            },
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
+
+        Ok(GetRFOutputResponse { enabled })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Returns the enable state of the ISC board's RF output.
 pub struct GetRFOutput {
-    channel: u8,
+    /// Channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for GetRFOutput {
@@ -103,13 +117,18 @@ impl Into<String> for GetRFOutput {
 }
 
 impl GetRFOutput {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for GetRFOutput {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }

@@ -24,7 +24,7 @@ use super::{
     system_reset::ResetSystem,
     uptime::GetUptime,
     version::GetVersion,
-    vga_attenuation::GetVGAAttenuationDB,
+    vga_attenuation::{GetVGAAttenuationDB, SetVGAAttenuationDB},
 };
 use serde::{Deserialize, Serialize};
 
@@ -48,6 +48,7 @@ pub enum Command {
     SetPhase(SetPhase),
     GetPATemp(GetPATemp),
     GetVGAAttenuationDB(GetVGAAttenuationDB),
+    SetVGAAttenuationDB(SetVGAAttenuationDB),
     GetQIMagPercent(GetQIMagPercent),
     SetQIMagPercent(SetQIMagPercent),
     SetISCPowerOutput(SetISCPowerOutput),

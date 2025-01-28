@@ -1,39 +1,40 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::MWError;
+use crate::{
+    drivers::data_types::types::{Channel, Phase},
+    errors::MWError,
+};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SetPhaseResponse {
-    /// The uptime in seconds.
-    pub result: String,
+    /// The result of the command (Ok/Err).
+    pub result: Result<(), MWError>,
 }
 
 impl TryFrom<String> for SetPhaseResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
-
-        let result = match parts[0].parse() {
-            Ok(result) => result,
-            Err(_) => return Err(MWError::FailedParseResponse),
-        };
-
-        Ok(SetPhaseResponse { result })
+        Ok(SetPhaseResponse { result: Ok(()) })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Sets the phase of the ISC board's RF output in degrees.
+///
+/// The phase set is reference to the selected clock source (see ClockSource).
 pub struct SetPhase {
-    channel: u8,
-    phase: u16,
+    /// Channel identification number.
+    pub channel: Channel,
+    /// The desired phase value in degrees
+    ///
+    /// Valid values are between 0 and 359.
+    pub phase: Phase,
 }
 
 impl Into<String> for SetPhase {
@@ -43,42 +44,53 @@ impl Into<String> for SetPhase {
 }
 
 impl SetPhase {
-    pub fn new(self, channel: u8, phase: u16) -> Self {
+    /// Returns a handler to call the command with specified inputs.
+    pub fn new(self, channel: Channel, phase: Phase) -> Self {
         Self { channel, phase }
     }
 }
 
 impl Default for SetPhase {
+    /// Returns the default handler to call the command.
+    ///
+    /// By default, phase is set to 0 degrees.
     fn default() -> Self {
         Self {
-            channel: 1,
-            phase: 0,
+            channel: Channel::default(),
+            phase: Phase::new(0),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetPhaseResponse {
-    /// The uptime in seconds.
-    pub phase: u16,
+    /// Current phase value of the ISC board (in degrees).
+    pub phase: Phase,
 }
 
 impl TryFrom<String> for GetPhaseResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
 
-        let phase = match parts[0].parse() {
-            Ok(phase) => phase,
-            Err(_) => return Err(MWError::FailedParseResponse),
+        // Ensure the input has the expected number of parts
+        if parts.len() != 3 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+
+        let phase: Phase = match parts[2].trim().parse::<u16>() {
+            Ok(value) => Phase::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
         };
 
         Ok(GetPhaseResponse { phase })
@@ -86,8 +98,10 @@ impl TryFrom<String> for GetPhaseResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Returns the current phase value of the ISC board's RF output in degrees.
 pub struct GetPhase {
-    channel: u8,
+    /// Channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for GetPhase {
@@ -97,13 +111,18 @@ impl Into<String> for GetPhase {
 }
 
 impl GetPhase {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for GetPhase {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }

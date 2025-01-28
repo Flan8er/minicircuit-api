@@ -1,8 +1,17 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::MWError;
+use crate::{drivers::data_types::types::Channel, errors::MWError};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// ISC-(frequency_low)(frequency_high)-(power)+
+///
+/// (frequency_low) - Lower frequency limit (only first 2 digits).
+///
+/// (frequency_high) - Upper frequency limit (only first 2 digits).
+///
+/// (power) - Maximum RF output power of the signal generator board in dBm.
+///
+/// Ex: ISC-2425-25+
 pub struct IdentityResponse {
     /// Name of the manufacturer.
     pub manufacturer: String,
@@ -16,26 +25,37 @@ impl TryFrom<String> for IdentityResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        // Parse a response string into the `IdentityResponse` struct
-        let parts: Vec<&str> = response.split(',').collect();
-        if parts.len() != 3 {
-            // could be a error code here so instead check to see if there's an error code and pass it into the new:: function
-            return Err(MWError::FailedParseResponse);
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
         }
 
-        todo!();
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
+
+        // Ensure the input has the expected number of parts
+        if parts.len() != 5 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+
+        let manufacturer = parts[2].trim().to_string();
+        let isc_board = parts[3].trim().to_string();
+        let serial_number = parts[4].trim().to_string();
 
         Ok(IdentityResponse {
-            manufacturer: parts[0].to_string(),
-            isc_board: parts[1].to_string(),
-            serial_number: parts[2].to_string(),
+            manufacturer,
+            isc_board,
+            serial_number,
         })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Returns the identity of the ISC board.
 pub struct GetIdentity {
-    channel: u8,
+    /// Desired channel identification number.
+    pub channel: Channel,
 }
 
 impl Into<String> for GetIdentity {
@@ -45,13 +65,18 @@ impl Into<String> for GetIdentity {
 }
 
 impl GetIdentity {
-    pub fn new(self, channel: u8) -> Self {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
         Self { channel }
     }
 }
 
 impl Default for GetIdentity {
+    /// Returns the default handler to call the command.
     fn default() -> Self {
-        Self { channel: 1 }
+        Self {
+            channel: Channel::default(),
+        }
     }
 }
