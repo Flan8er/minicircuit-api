@@ -4,14 +4,22 @@ use crate::{drivers::data_types::types::Channel, errors::MWError};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum SOAType {
+    /// See `SetSOATempConfig`
     Temperature,
+    /// See `SetSOAPowerConfig`
     Reflection,
+    #[deprecated()]
     ExternalWatchdog,
+    /// See `SetSOADissipationConfig`
     Dissipation,
+    /// See `$PSG`
     PAStatus,
     IQModulator,
+    /// See `SetSOACurrentConfig`
     Current,
+    /// See `SetSOAVoltageConfig`
     Voltage,
+    /// See `SetSOAForwardPowerLimits`
     ForwardPower,
 }
 

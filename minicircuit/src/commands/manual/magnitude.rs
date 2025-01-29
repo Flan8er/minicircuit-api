@@ -6,12 +6,12 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct SetQIMagPercentResponse {
+pub struct SetMagnitudeResponse {
     /// The result of the command (Ok/Err).
     pub result: Result<(), MWError>,
 }
 
-impl TryFrom<String> for SetQIMagPercentResponse {
+impl TryFrom<String> for SetMagnitudeResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
@@ -20,7 +20,7 @@ impl TryFrom<String> for SetQIMagPercentResponse {
             return Err(response_error);
         }
 
-        Ok(SetQIMagPercentResponse { result: Ok(()) })
+        Ok(SetMagnitudeResponse { result: Ok(()) })
     }
 }
 
@@ -32,27 +32,27 @@ impl TryFrom<String> for SetQIMagPercentResponse {
 ///
 /// Remark: Under normal conditions, both the VGA and the IQ modulator are used to regulate the power output of the ISC board,
 /// thus the actual power output is a combination of both.
-pub struct SetQIMagPercent {
+pub struct SetMagnitude {
     /// Channel identification number.
     pub channel: Channel,
     /// The desired magnitude of the IQ modulator in percent (%).
     pub magnitude: Percentage,
 }
 
-impl Into<String> for SetQIMagPercent {
+impl Into<String> for SetMagnitude {
     fn into(self) -> String {
         format!("$MCS,{},{}", self.channel, self.magnitude)
     }
 }
 
-impl SetQIMagPercent {
+impl SetMagnitude {
     /// Magnitude in percent (%) in range from 0-100
     pub fn new(self, channel: Channel, magnitude: Percentage) -> Self {
         Self { channel, magnitude }
     }
 }
 
-impl Default for SetQIMagPercent {
+impl Default for SetMagnitude {
     /// Returns the default handler to call the command.
     fn default() -> Self {
         Self {
@@ -63,12 +63,12 @@ impl Default for SetQIMagPercent {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct GetQIMagPercentResponse {
+pub struct GetMagnitudeResponse {
     /// The current magnitude configuration of the IQ modulator in percent.
     pub magnitude: Percentage,
 }
 
-impl TryFrom<String> for GetQIMagPercentResponse {
+impl TryFrom<String> for GetMagnitudeResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
@@ -93,24 +93,24 @@ impl TryFrom<String> for GetQIMagPercentResponse {
             }
         };
 
-        Ok(GetQIMagPercentResponse { magnitude })
+        Ok(GetMagnitudeResponse { magnitude })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 /// Gets the magnitude of the IQ modulator.
-pub struct GetQIMagPercent {
+pub struct GetMagnitude {
     /// Channel identification number.
     pub channel: Channel,
 }
 
-impl Into<String> for GetQIMagPercent {
+impl Into<String> for GetMagnitude {
     fn into(self) -> String {
         format!("$MCG,{}", self.channel)
     }
 }
 
-impl GetQIMagPercent {
+impl GetMagnitude {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
     pub fn new(self, channel: Channel) -> Self {
@@ -118,7 +118,7 @@ impl GetQIMagPercent {
     }
 }
 
-impl Default for GetQIMagPercent {
+impl Default for GetMagnitude {
     /// Returns the default handler to call the command.
     fn default() -> Self {
         Self {

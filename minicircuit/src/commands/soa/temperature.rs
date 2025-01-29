@@ -68,13 +68,13 @@ impl SetSOATempConfig {
 
 impl Default for SetSOATempConfig {
     /// Returns the default handler to call the command.
-    /// By default, high temperature is set to 80 deg C,
-    /// and shutdown temperature is set to 90 deg C.
+    /// By default, high temperature is set to 55 deg C,
+    /// and shutdown temperature is set to 65 deg C.
     fn default() -> Self {
         Self {
             channel: Channel::default(),
-            high_temp: Temperature::new(80),
-            shutdown_temp: Temperature::new(90),
+            high_temp: Temperature::new(55),
+            shutdown_temp: Temperature::new(65),
         }
     }
 }

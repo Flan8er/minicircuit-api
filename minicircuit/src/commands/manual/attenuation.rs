@@ -8,12 +8,16 @@ use crate::{
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 /// The configured attenuation value of the VGA which regulates the ISC board’s power output. The
 /// higher the value, the lower the power output.
-pub struct GetVGAAttenuationDBResponse {
-    /// The attenuation value of the DVGA.
+pub struct GetAttenuationResponse {
+    /// The attenuation value of the DSA.
+    ///
+    /// Attenuation range: 0 - 31.75dB
+    ///
+    /// Minimum step size: 0.25dB
     pub attenuation: Attenuation,
 }
 
-impl TryFrom<String> for GetVGAAttenuationDBResponse {
+impl TryFrom<String> for GetAttenuationResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
@@ -38,25 +42,25 @@ impl TryFrom<String> for GetVGAAttenuationDBResponse {
             }
         };
 
-        Ok(GetVGAAttenuationDBResponse { attenuation })
+        Ok(GetAttenuationResponse { attenuation })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-/// Returns the configured attenuation value of the VGA which regulates the ISC board's poweroutput.
+/// Returns the configured attenuation value of the VGA which regulates the ISC board's power output.
 /// The higher the value, the lower the power output.
-pub struct GetVGAAttenuationDB {
+pub struct GetAttenuation {
     /// Channel identification number.
     pub channel: Channel,
 }
 
-impl Into<String> for GetVGAAttenuationDB {
+impl Into<String> for GetAttenuation {
     fn into(self) -> String {
         format!("$GCG,{}", self.channel)
     }
 }
 
-impl GetVGAAttenuationDB {
+impl GetAttenuation {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
     pub fn new(self, channel: Channel) -> Self {
@@ -64,7 +68,7 @@ impl GetVGAAttenuationDB {
     }
 }
 
-impl Default for GetVGAAttenuationDB {
+impl Default for GetAttenuation {
     /// Returns the default handler to call the command.
     fn default() -> Self {
         Self {
@@ -74,12 +78,12 @@ impl Default for GetVGAAttenuationDB {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct SetVGAAttenuationDBResponse {
+pub struct SetAttenuationResponse {
     /// The result of the command (Ok/Err).
     pub result: Result<(), MWError>,
 }
 
-impl TryFrom<String> for SetVGAAttenuationDBResponse {
+impl TryFrom<String> for SetAttenuationResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
@@ -88,7 +92,7 @@ impl TryFrom<String> for SetVGAAttenuationDBResponse {
             return Err(response_error);
         }
 
-        Ok(SetVGAAttenuationDBResponse { result: Ok(()) })
+        Ok(SetAttenuationResponse { result: Ok(()) })
     }
 }
 
@@ -102,20 +106,24 @@ impl TryFrom<String> for SetVGAAttenuationDBResponse {
 /// Under normal conditions, both the VGA and the IQ modulator are used to regulate power output of the ISC board,
 /// thus the actual power output is a combination of both.
 /// The IQ modulator is controlled using the SetQIMagPercent command.
-pub struct SetVGAAttenuationDB {
+pub struct SetAttenuation {
     /// Channel identification number.
     pub channel: Channel,
-    /// The desired attenuation value of the DVGA.
+    /// The desired attenuation value of the DSA.
+    ///
+    /// Attenuation range: 0 - 31.75dB
+    ///
+    /// Minimum step size: 0.25dB
     pub attenuation: Attenuation,
 }
 
-impl Into<String> for SetVGAAttenuationDB {
+impl Into<String> for SetAttenuation {
     fn into(self) -> String {
         format!("$GCS,{},{}", self.channel, self.attenuation)
     }
 }
 
-impl SetVGAAttenuationDB {
+impl SetAttenuation {
     /// Returns a handler to call the command with the provided inputs.
     pub fn new(self, channel: Channel, attenuation: Attenuation) -> Self {
         Self {
@@ -125,8 +133,10 @@ impl SetVGAAttenuationDB {
     }
 }
 
-impl Default for SetVGAAttenuationDB {
+impl Default for SetAttenuation {
     /// Returns the default handler to call the command.
+    ///
+    /// By default, attenuation is set to 7dB
     fn default() -> Self {
         Self {
             channel: Channel::default(),

@@ -25,7 +25,7 @@ impl TryFrom<String> for SetDLLEnabledResponse {
 /// Turns DLL mode ON or OFF
 ///
 /// True = On,
-/// False = Off
+/// False = Off (default)
 pub struct SetDLLEnabled {
     /// Channel identification number.
     pub channel: Channel,
@@ -56,11 +56,11 @@ impl SetDLLEnabled {
 
 impl Default for SetDLLEnabled {
     /// Returns the default handler to call the command.
-    /// By default DLL is enabled.
+    /// By default DLL is disabled.
     fn default() -> Self {
         Self {
             channel: Channel::default(),
-            enabled: true,
+            enabled: false,
         }
     }
 }

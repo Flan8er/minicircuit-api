@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    drivers::data_types::types::{Channel, Watt},
-    errors::MWError,
-};
+use crate::{drivers::data_types::types::Channel, errors::MWError};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SetSOAGraceTimerResponse {
@@ -25,49 +22,42 @@ impl TryFrom<String> for SetSOAGraceTimerResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Configures the grace period for the SOA's protection systems.
+///
+/// There may be situations where it is desirable to permit a grace period before SOA acts
+/// and potentially shuts down everything. The SOA grace timer may be used to allow temporary violations
+/// of the reflection, dissipation, and temperature limits for a configurable period. Only a continuous,
+/// uninterrupted violation longer than the grace timeout will trigger a reaction from the SOA.
 pub struct SetSOAGraceTimer {
     /// Channel identification number.
     pub channel: Channel,
-    /// The forward power value in dBm at which the `HighForwardPower` reaction is performed by the SOA.
-    pub high_forward_power: Watt,
-    /// The forward power value in dBm at which the `ShutdownForwardPower` reaction is performed by the SOA.
-    pub shutdown_forward_power: Watt,
+    /// The period in milliseconds that SOA should tolerate violations before taking action.
+    pub grace_period: u16,
 }
 
 impl Into<String> for SetSOAGraceTimer {
     fn into(self) -> String {
-        format!(
-            "$SOAGS,{},{},{}",
-            self.channel, self.high_forward_power, self.shutdown_forward_power
-        )
+        format!("$SOAGS,{},{}", self.channel, self.grace_period)
     }
 }
 
 impl SetSOAGraceTimer {
     /// Returns a handler to call the command using the given inputs.
-    pub fn new(
-        self,
-        channel: Channel,
-        high_forward_power: Watt,
-        shutdown_forward_power: Watt,
-    ) -> Self {
+    pub fn new(self, channel: Channel, grace_period: u16) -> Self {
         Self {
             channel,
-            high_forward_power,
-            shutdown_forward_power,
+            grace_period,
         }
     }
 }
 
 impl Default for SetSOAGraceTimer {
     /// Returns the default handler to call the command.
-    /// By default, protection values are configured to 55W (47.4 dBm)
-    /// and 65W (48.15 dBm) respectively.
+    /// By default, the grace period is set to 500ms.
     fn default() -> Self {
         Self {
             channel: Channel::default(),
-            high_forward_power: Watt::new(55.),
-            shutdown_forward_power: Watt::new(65.),
+            grace_period: 500,
         }
     }
 }

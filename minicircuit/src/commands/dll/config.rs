@@ -83,6 +83,20 @@ impl SetDLLConfig {
 
 impl Default for SetDLLConfig {
     /// Returns the default handler to call the command.
+    ///
+    /// Default values are:
+    ///
+    /// - Lower frequency: 2400MHz
+    ///
+    /// - Upper frequency: 2500MHz
+    ///
+    /// - Start frequency: 2410MHz
+    ///
+    /// - Step frequency: 5MHz
+    ///
+    /// - Threshold: 0.5dB
+    ///
+    /// - Main delay: 25ms
     fn default() -> Self {
         Self {
             channel: Channel::default(),
@@ -148,19 +162,19 @@ impl TryFrom<String> for GetDLLConfigResponse {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let step_frequency: Frequency = match parts[4].trim().parse::<u16>() {
+        let step_frequency: Frequency = match parts[5].trim().parse::<u16>() {
             Ok(value) => Frequency::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let threshold: Threshold = match parts[4].trim().parse::<f32>() {
+        let threshold: Threshold = match parts[6].trim().parse::<f32>() {
             Ok(value) => Threshold::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let main_delay: MainDelay = match parts[4].trim().parse::<u16>() {
+        let main_delay: MainDelay = match parts[7].trim().parse::<u16>() {
             Ok(value) => MainDelay::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);

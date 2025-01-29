@@ -1,14 +1,17 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{drivers::data_types::types::Channel, errors::MWError};
+use crate::{
+    drivers::data_types::types::{Channel, Dbm},
+    errors::MWError,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct SetRFOutputResponse {
+pub struct SetISCPowerOutputResponse {
     /// The result of the command (Ok/Err).
     pub result: Result<(), MWError>,
 }
 
-impl TryFrom<String> for SetRFOutputResponse {
+impl TryFrom<String> for SetISCPowerOutputResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
@@ -17,61 +20,53 @@ impl TryFrom<String> for SetRFOutputResponse {
             return Err(response_error);
         }
 
-        Ok(SetRFOutputResponse { result: Ok(()) })
+        Ok(SetISCPowerOutputResponse { result: Ok(()) })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-/// Turns RF output of the ISC board ON or OFF.
+/// TO USE THIS COMMAND, `SetAutoGain` MUST BE DISABLED FIRST
 ///
-/// Board is turned off by default.
-pub struct SetRFOutput {
+/// Provides a coarse method to regulate the small signal output power of the
+/// ISC board by automatically configuring the values of the VGA and IQ modulator
+/// to the roughly desired dBm value.
+pub struct SetISCPowerOutput {
     /// Channel identification number.
     pub channel: Channel,
-    /// Desired setting of the RF output.
-    ///
-    /// True = ON
-    ///
-    /// False = OFF (default)
-    pub enabled: bool,
+    /// The desired small signal output in dBm.
+    pub power_dbm: Dbm,
 }
 
-impl Into<String> for SetRFOutput {
+impl Into<String> for SetISCPowerOutput {
     fn into(self) -> String {
-        let numeric_value = match self.enabled {
-            true => 1,
-            false => 0,
-        };
-        format!("$ECS,{},{}", self.channel, numeric_value)
+        format!("$PWRSGDS,{},{}", self.channel, self.power_dbm)
     }
 }
 
-impl SetRFOutput {
+impl SetISCPowerOutput {
     /// Returns a handler to call the command with specified inputs.
-    pub fn new(self, channel: Channel, enabled: bool) -> Self {
-        Self { channel, enabled }
+    pub fn new(self, channel: Channel, power_dbm: Dbm) -> Self {
+        Self { channel, power_dbm }
     }
 }
 
-impl Default for SetRFOutput {
+impl Default for SetISCPowerOutput {
     /// Returns the default handler to call the command.
-    ///
-    /// By default, output is disabled.
     fn default() -> Self {
         Self {
             channel: Channel::default(),
-            enabled: false,
+            power_dbm: Dbm::new(20.),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct GetRFOutputResponse {
-    /// State of the ISC board's output.
-    pub enabled: bool,
+pub struct GetISCPowerOutputResponse {
+    /// The last configured small signal output power setting in dBm.
+    pub power: Dbm,
 }
 
-impl TryFrom<String> for GetRFOutputResponse {
+impl TryFrom<String> for GetISCPowerOutputResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
@@ -89,37 +84,34 @@ impl TryFrom<String> for GetRFOutputResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let enabled: bool = match parts[2].trim().parse::<u8>() {
-            Ok(value) => match value {
-                1 => true,
-                _ => false,
-            },
+        let power: Dbm = match parts[2].trim().parse::<f32>() {
+            Ok(value) => Dbm::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
 
-        Ok(GetRFOutputResponse { enabled })
+        Ok(GetISCPowerOutputResponse { power })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-/// Returns the enable state of the ISC board's RF output.
-///
-/// Enable state can be set with `SetRFOutput`, but there are also many status
-/// conditions that turn RF output OFF for safety reasons. Check `GetStatus` for details.
-pub struct GetRFOutput {
+/// Returns the last power set. The last power set does not indicate
+/// the current state of the VGA and IQ Modulator which could have changed due to
+/// calls to `SetMagnitude`, `SetAttenuation`, or any other function
+/// that affects these settings.
+pub struct GetISCPowerOutput {
     /// Channel identification number.
     pub channel: Channel,
 }
 
-impl Into<String> for GetRFOutput {
+impl Into<String> for GetISCPowerOutput {
     fn into(self) -> String {
-        format!("$ECG,{}", self.channel)
+        format!("$PWRSGDG,{}", self.channel)
     }
 }
 
-impl GetRFOutput {
+impl GetISCPowerOutput {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
     pub fn new(self, channel: Channel) -> Self {
@@ -127,7 +119,7 @@ impl GetRFOutput {
     }
 }
 
-impl Default for GetRFOutput {
+impl Default for GetISCPowerOutput {
     /// Returns the default handler to call the command.
     fn default() -> Self {
         Self {

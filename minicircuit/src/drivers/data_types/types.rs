@@ -359,10 +359,10 @@ impl Attenuation {
     ///
     /// Valid values are between 0 - 31.5 dB.
     ///
-    /// Minimum step size: 0.5 dB.
+    /// Minimum step size: 0.25 dB.
     pub fn new(attenuation: f32) -> Self {
         let clamped = attenuation.clamp(0.0, 31.5);
-        let rounded = (clamped / 0.5).round() * 0.5; // Round to the nearest 0.5
+        let rounded = (clamped / 0.25).round() * 0.25; // Round to the nearest 0.5
         Self {
             attenuation: rounded,
         }

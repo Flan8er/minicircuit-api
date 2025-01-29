@@ -67,12 +67,12 @@ impl SetSOAPowerConfig {
 
 impl Default for SetSOAPowerConfig {
     /// Returns the default handler to call the command.
-    /// By default, 'HighReflection' will be triggered at 53 dBm,
-    /// and 'ShutdownReflection' will be triggered at 54 dBm.
+    /// By default, 'HighReflection' will be triggered at 47.25 dBm (53W),
+    /// and 'ShutdownReflection' will be triggered at 54 dBm (55W).
     fn default() -> Self {
         Self {
             channel: Channel::default(),
-            high_reflection: Dbm::new(53.),
+            high_reflection: Dbm::new(47.25),
             shutdown_reflection: Dbm::new(54.),
         }
     }
