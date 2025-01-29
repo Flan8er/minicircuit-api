@@ -2,6 +2,79 @@ use serde::{Deserialize, Serialize};
 
 use crate::{drivers::data_types::types::Channel, errors::MWError};
 
+macro_rules! define_status_codes {
+    (
+        $(
+            $variant:ident => $bit:expr
+        ),+ $(,)?
+    ) => {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        pub enum StatusCode {
+            $(
+                $variant
+            ),+
+        }
+
+        impl StatusCode {
+            /// Convert an enum variant to its bit value.
+            pub fn to_bit_value(&self) -> u64 {
+                match self {
+                    $(
+                        StatusCode::$variant => $bit
+                    ),+
+                }
+            }
+
+            /// Convert a bit value to an enum variant (if it matches).
+            pub fn from_bit_value(bit_value: u64) -> Option<StatusCode> {
+                match bit_value {
+                    $(
+                        $bit => Some(StatusCode::$variant),
+                    )+
+                    _ => None,
+                }
+            }
+        }
+    }
+}
+
+define_status_codes! {
+    SystemOk => 0x000000000,
+    UnspecifiedError => 0x000000001,
+    HighPATemperature => 0x000000002,
+    ShutdownPATemperature => 0x000000004,
+    HighReflectedPower => 0x000000008,
+    ShutdownReflectedPower => 0x000000010,
+    ResetDetected => 0x000000020,
+    TemperatureReadoutError => 0x000000040,
+    PowerMeasurementFailure => 0x000000080,
+    RFEnableFailure => 0x000000100,
+    MultiplexerFailure => 0x000000200,
+    ExternalShutdownTriggered => 0x000000400,
+    OutOfMemory => 0x000000800,
+    I2CCommunicationError => 0x000001000,
+    SPICommunicaitonError => 0x000002000,
+    SOAMeasurementError => 0x000008000,
+    ExternalWatchdogTimeout => 0x000010000,
+    CalibrationMissing => 0x000020000,
+    ExternalProtectionTriggered => 0x000040000,
+    SOAHighDissipation => 0x000080000,
+    SOAShutdownDissipation => 0x000100000,
+    CalibrationEEPROMOutdated => 0x000200000,
+    PAError => 0x000400000,
+    PAResetFailure => 0x000800000,
+    PAHighCurrent => 0x001000000,
+    AlarmIn => 0x004000000,
+    SOAHighCurrent => 0x010000000,
+    SOAShutdownCurrent => 0x020000000,
+    SOAHighForwardPower => 0x040000000,
+    SOAShutdownForwardPower => 0x080000000,
+    SOAShutdownMinimumVoltage => 0x100000000,
+    SOALowVoltage => 0x200000000,
+    SOAHighVoltage => 0x400000000,
+    SOAShutdownMaximumVoltage => 0x800000000,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 /// List of status codes stored on the ISC board.
 pub struct StatusResponse {
@@ -26,7 +99,7 @@ impl TryFrom<String> for StatusResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let hex_status_code = match parts[3].trim().parse::<u32>() {
+        let hex_status_code = match parts[3].trim().parse::<u64>() {
             Ok(value) => value,
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
@@ -79,163 +152,244 @@ impl Default for GetStatus {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Status {
-    /// A hexadecimal value of the error on the ISC board.
-    pub error_code: u32,
     /// The status of the ISC board.
     pub status: String,
     /// A description of the status.
     pub description: String,
 }
 
+impl From<StatusCode> for Status {
+    fn from(code: StatusCode) -> Status {
+        match code {
+            StatusCode::SystemOk => {
+                return Self {
+                    status: "No errors or warning".to_string(),
+                    description: "Business as usual!".to_string(),
+                }
+            }
+            StatusCode::UnspecifiedError => {
+                return Self {
+                    status: "Unspecified Error".to_string(),
+                    description: "RF output OFF (blocking); Reset controller.".to_string(),
+                }
+            }
+            StatusCode::HighPATemperature => return Self {
+                status: "High PA Temperature".to_string(),
+                description:
+                    "With autogain enabled, unit throttles output power (see SOA for more detail)."
+                        .to_string(),
+            },
+            StatusCode::ShutdownPATemperature => {
+                return Self {
+                    status: "Shutdown PA Temperature".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::HighReflectedPower => return Self {
+                status: "High Reflected Power".to_string(),
+                description:
+                    "With autogain enabled, unit throttles output power (see SOA for more detail)."
+                        .to_string(),
+            },
+            StatusCode::ShutdownReflectedPower => {
+                return Self {
+                    status: "Shutdown Reflected Power".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::ResetDetected => Self {
+                status: "Reset Detected".to_string(),
+                description: "Warning only - no action.".to_string(),
+            },
+            StatusCode::TemperatureReadoutError => {
+                return Self {
+                    status: "Temperature Read-out Error".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::PowerMeasurementFailure => {
+                return Self {
+                    status: "Power Measurement Failure".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::RFEnableFailure => {
+                return Self {
+                    status: "RF Enable Failure".to_string(),
+                    description: "Warning only - no action.".to_string(),
+                }
+            }
+            StatusCode::MultiplexerFailure => {
+                return Self {
+                    status: "Multiplexer Failure".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::ExternalShutdownTriggered => {
+                return Self {
+                    status: "External Shutdown Triggered".to_string(),
+                    description: "RF output disabled (Non-Blocking).".to_string(),
+                }
+            }
+            StatusCode::OutOfMemory => {
+                return Self {
+                    status: "Out of Memory".to_string(),
+                    description: "Warning only - no action.".to_string(),
+                }
+            }
+            StatusCode::I2CCommunicationError => {
+                return Self {
+                    status: "I2C Communication Error".to_string(),
+                    description: "RF output disabled in case of critical measurement.".to_string(),
+                }
+            }
+            StatusCode::SPICommunicaitonError => {
+                return Self {
+                    status: "SPI Communication Error".to_string(),
+                    description: "RF output disabled in case of critical measurement.".to_string(),
+                }
+            }
+            StatusCode::SOAMeasurementError => {
+                return Self {
+                    status: "SOA Measurement Error".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::ExternalWatchdogTimeout => {
+                return Self {
+                    status: "External Watchdog Timeout".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::CalibrationMissing => {
+                return Self {
+                    status: "Calibration Missing".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::ExternalProtectionTriggered => {
+                return Self {
+                    status: "External Protection Triggered".to_string(),
+                    description: "Warning only - no action.".to_string(),
+                }
+            }
+            StatusCode::SOAHighDissipation => {
+                return Self {
+                    status: "SOA High Dissipation".to_string(),
+                    description: "Warning only - no action.".to_string(),
+                }
+            }
+            StatusCode::SOAShutdownDissipation => {
+                return Self {
+                    status: "SOA Shutdown Dissipation".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::CalibrationEEPROMOutdated => {
+                return Self {
+                    status: "Calibration EEPROM Outdated".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::PAError => {
+                return Self {
+                    status: "PA Error".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::PAResetFailure => {
+                return Self {
+                    status: "PA Reset Failure".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::PAHighCurrent => {
+                return Self {
+                    status: "PA High Current".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::AlarmIn => {
+                return Self {
+                    status: "Alarm In".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::SOAHighCurrent => {
+                return Self {
+                    status: "SOA High Current".to_string(),
+                    description: "Warning only - no action.".to_string(),
+                }
+            }
+            StatusCode::SOAShutdownCurrent => {
+                return Self {
+                    status: "SOA Shutdown Current".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::SOAHighForwardPower => {
+                return Self {
+                    status: "SOA High Forward Power".to_string(),
+                    description: "Warning only - no action".to_string(),
+                }
+            }
+            StatusCode::SOAShutdownForwardPower => {
+                return Self {
+                    status: "SOA Shutdown Forward Power".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::SOAShutdownMinimumVoltage => {
+                return Self {
+                    status: "SOA Shutdown Minimum Voltage".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+            StatusCode::SOALowVoltage => {
+                return Self {
+                    status: "SOA Low Voltage".to_string(),
+                    description: "Warning only - no action".to_string(),
+                }
+            }
+            StatusCode::SOAHighVoltage => {
+                return Self {
+                    status: "SOA High Voltage".to_string(),
+                    description: "Warning only - no action.".to_string(),
+                }
+            }
+            StatusCode::SOAShutdownMaximumVoltage => {
+                return Self {
+                    status: "SOA Shutdown Maximum Voltage".to_string(),
+                    description: "RF output disabled.".to_string(),
+                }
+            }
+        }
+    }
+}
+
 impl Status {
-    pub fn new(error_code: u32, status: String, description: String) -> Self {
+    pub fn new(status: &str, description: &str) -> Self {
         Self {
-            error_code,
-            status,
-            description,
+            status: status.to_string(),
+            description: description.to_string(),
         }
     }
 
-    /// Converts a hexadecimal value into a vector of `Status` codes by decoding the bitfield.
-    pub fn from_hex_code(hex_code: u32) -> Vec<Self> {
+    pub fn from_hex_code(hex_code: u64) -> Vec<Self> {
         let mut statuses = Vec::new();
 
-        // Check each bit in the bitfield and map it to a Status using match logic
-        for bit_position in 0..24 {
-            let bit_value = 1 << bit_position; // Compute the current bit value
+        // Use 0..32 or 0..64 depending on how high your bits can go
+        for bit_position in 0..64 {
+            let bit_mask = 1 << bit_position;
 
-            if hex_code & bit_value != 0 {
-                match bit_value {
-                    0x1 => statuses.push(Status::new(
-                        1,
-                        "Unspecified Error.".to_string(),
-                        "RF output OFF (blocking); Reset controller.".to_string(),
-                    )),
-                    0x2 => statuses.push(Status::new(
-                        2,
-                        "High temperature in the PA.".to_string(),
-                        "Unit throttles output power (with autogain enabled).".to_string(),
-                    )),
-                    0x4 => statuses.push(Status::new(
-                        4,
-                        "Shutdown Temperature in the PA.".to_string(),
-                        "RF output OFF (blocking).".to_string(),
-                    )),
-                    0x8 => statuses.push(Status::new(
-                        8,
-                        "High reflection.".to_string(),
-                        "Warning only; no action.".to_string(),
-                    )),
-                    0x10 => statuses.push(Status::new(
-                        10,
-                        "Shutdown reflection.".to_string(),
-                        "RF output OFF (blocking).".to_string(),
-                    )),
-                    0x20 => statuses.push(Status::new(
-                        20,
-                        "Reset detected.".to_string(),
-                        "Warning only; no action.".to_string(),
-                    )),
-                    0x40 => statuses.push(Status::new(
-                        40,
-                        "Temperature read-out error.".to_string(),
-                        "RF output OFF (blocking).".to_string(),
-                    )),
-                    0x80 => statuses.push(Status::new(
-                        80,
-                        "Power measurement failure.".to_string(),
-                        "RF output OFF (blocking).".to_string(),
-                    )),
-                    0x100 => statuses.push(Status::new(
-                        100,
-                        "RF output enable failure.".to_string(),
-                        "Indication message.".to_string(),
-                    )),
-                    0x200 => statuses.push(Status::new(
-                        200,
-                        "Multiplexer failure (I2C).".to_string(),
-                        "RF output OFF (blocking).".to_string(),
-                    )),
-                    0x400 => statuses.push(Status::new(
-                        400,
-                        "External shutdown triggered.".to_string(),
-                        "RF output OFF (non-blocking).".to_string(),
-                    )),
-                    0x800 => statuses.push(Status::new(
-                        800,
-                        "Reserved.".to_string(),
-                        "Error code reserved.".to_string(),
-                    )),
-                    0x1000 => statuses.push(Status::new(
-                        1000,
-                        "I2C communication problem has occurred.".to_string(),
-                        "RF output OFF (blocking)in case of critical measurements.".to_string(),
-                    )),
-                    0x2000 => statuses.push(Status::new(
-                        2000,
-                        "SPI communication problem has occurred.".to_string(),
-                        "RF output OFF (blocking)in case of critical measurements.".to_string(),
-                    )),
-                    0x4000 => statuses.push(Status::new(
-                        4000,
-                        "IQ Conversion Error.".to_string(),
-                        "RF output OFF (blocking).".to_string(),
-                    )),
-                    0x8000 => statuses.push(Status::new(
-                        8000,
-                        "SOA Measurement Error.".to_string(),
-                        " RF output OFF (blocking).".to_string(),
-                    )),
-                    0x10000 => statuses.push(Status::new(
-                        10000,
-                        "External Communication Watchdog Timeout.".to_string(),
-                        "RF output OFF (blocking).".to_string(),
-                    )),
-                    0x20000 => statuses.push(Status::new(
-                        20000,
-                        "Calibration missing.".to_string(),
-                        "RF output OFF (blocking).".to_string(),
-                    )),
-                    0x40000 => statuses.push(Status::new(
-                        40000,
-                        "Reserved.".to_string(),
-                        "Error code reserved.".to_string(),
-                    )),
-                    0x80000 => statuses.push(Status::new(
-                        80000,
-                        "SOA high dissipation.".to_string(),
-                        "Warning only; no action.".to_string(),
-                    )),
-                    0x100000 => statuses.push(Status::new(
-                        100000,
-                        "SOA shutdown dissipation.".to_string(),
-                        "RF output OFF (blocking).".to_string(),
-                    )),
-                    0x200000 => statuses.push(Status::new(
-                        200000,
-                        "EEPROM content incompatible with firmware version.".to_string(),
-                        "RF output OFF (blocking).".to_string(),
-                    )),
-                    0x400000 => statuses.push(Status::new(
-                        400000,
-                        "Internal PA Error.".to_string(),
-                        "RF output OFF (blocking).".to_string(),
-                    )),
-                    0x800000 => statuses.push(Status::new(
-                        800000,
-                        "PA Reset Failure.".to_string(),
-                        "RF output OFF (blocking).".to_string(),
-                    )),
-                    0x1000000 => statuses.push(Status::new(
-                        1000000,
-                        "High Current.".to_string(),
-                        "RF output OFF (blocking).".to_string(),
-                    )),
-                    _ => statuses.push(Status::new(
-                        0,
-                        "No error.".to_string(),
-                        "Status is nominal".to_string(),
-                    )),
+            // Check if that bit is actually set in `hex_code`
+            if (hex_code & bit_mask) != 0 {
+                // If this specific bit maps to a StatusCode, push it,
+                // otherwise default to something like UnspecifiedError
+                if let Some(status_code) = StatusCode::from_bit_value(bit_mask) {
+                    statuses.push(Status::from(status_code));
+                } else {
+                    statuses.push(Status::from(StatusCode::UnspecifiedError));
                 }
             }
         }

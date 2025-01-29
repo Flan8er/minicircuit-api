@@ -8,7 +8,6 @@ pub enum SOAType {
     Temperature,
     /// See `SetSOAPowerConfig`
     Reflection,
-    #[deprecated()]
     ExternalWatchdog,
     /// See `SetSOADissipationConfig`
     Dissipation,
