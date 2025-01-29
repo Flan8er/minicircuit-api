@@ -36,8 +36,8 @@ impl TryFrom<String> for VersionResponse {
 
         // Ensure the input has the expected number of parts
         let parsed_response = match parts.len() {
-            8 => parse_with_hotfix(parts),
-            9 => parse_without_hotfix(parts),
+            8 => parse_without_hotfix(parts),
+            9 => parse_with_hotfix(parts),
             _ => {
                 return Err(Self::Error::FailedParseResponse);
             }

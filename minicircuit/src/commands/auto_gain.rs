@@ -3,12 +3,12 @@ use serde::{Deserialize, Serialize};
 use crate::{drivers::data_types::types::Channel, errors::MWError};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct SetRFOutputResponse {
+pub struct SetAutoGainStateResponse {
     /// The result of the command (Ok/Err).
     pub result: Result<(), MWError>,
 }
 
-impl TryFrom<String> for SetRFOutputResponse {
+impl TryFrom<String> for SetAutoGainStateResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
@@ -17,61 +17,77 @@ impl TryFrom<String> for SetRFOutputResponse {
             return Err(response_error);
         }
 
-        Ok(SetRFOutputResponse { result: Ok(()) })
+        Ok(SetAutoGainStateResponse { result: Ok(()) })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-/// Turns RF output of the ISC board ON or OFF.
+/// Turns the auto-gain algorithm ON or OFF.
 ///
-/// Board is turned off by default.
-pub struct SetRFOutput {
+/// The auto-gain algorithm automatically regulates the power output of the ISC board by configuring the DSA and Modulator bias
+/// according to calibrations that are stored in the device's EEPROM and feedback from the PA.
+///
+/// When auto-gain is enabled, the user can simply request an arbitrary amount of power (in Watt / dBm)
+/// from their RF system, and the requested power will be accurately generated (as long
+/// as the calibration is good and there are no unexpected interferences).
+///
+/// When auto-gain is disabled, the user can take manual control of the DSA and Modulator bias.
+/// Operating manually is not recommended in most situations but can be useful for troubleshooting
+/// and characterizing RF systems.
+///
+/// Disabling auto-gain has consequences for a variety of commands:
+///
+/// - `SetPAPowerSetpointDBM` and `SetPAPowerSetpointWatt`set the DSA state according to the static feed-forward calibration
+/// stored in the EEPROM.
+///
+/// - Power can be regulated manually using commands like `SetQIMagPercent` and `SetVGAAttenuationDB` to control
+/// the DSA and Modulator bias directly.
+///
+/// - `PerformSweepWatt` and `PerformSweepDBM` ignore the "Sweet Power" argument. Sweeps are performed at whatever power output is configured
+/// through the DSA and IQ modulator at the time.
+pub struct SetAutoGainState {
     /// Channel identification number.
     pub channel: Channel,
-    /// Desired setting of the RF output.
-    ///
-    /// True = ON
-    ///
-    /// False = OFF (default)
+    /// Desired enable state of the auto-gain algorithm.
     pub enabled: bool,
 }
 
-impl Into<String> for SetRFOutput {
+impl Into<String> for SetAutoGainState {
     fn into(self) -> String {
-        let numeric_value = match self.enabled {
-            true => 1,
-            false => 0,
-        };
-        format!("$ECS,{},{}", self.channel, numeric_value)
+        format!("$AGES,{},{}", self.channel, self.enabled)
     }
 }
 
-impl SetRFOutput {
+impl SetAutoGainState {
     /// Returns a handler to call the command with specified inputs.
     pub fn new(self, channel: Channel, enabled: bool) -> Self {
         Self { channel, enabled }
     }
 }
 
-impl Default for SetRFOutput {
+impl Default for SetAutoGainState {
     /// Returns the default handler to call the command.
     ///
-    /// By default, output is disabled.
+    /// By default, auto-gain is enabled.
     fn default() -> Self {
         Self {
             channel: Channel::default(),
-            enabled: false,
+            enabled: true,
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct GetRFOutputResponse {
-    /// State of the ISC board's output.
+pub struct GetAutoGainStateResponse {
+    /// Current enable state of the auto-gain algorithm.
+    ///
+    /// True = ON
+    ///
+    /// Fale = OFF
     pub enabled: bool,
 }
 
-impl TryFrom<String> for GetRFOutputResponse {
+impl TryFrom<String> for GetAutoGainStateResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
@@ -99,27 +115,24 @@ impl TryFrom<String> for GetRFOutputResponse {
             }
         };
 
-        Ok(GetRFOutputResponse { enabled })
+        Ok(GetAutoGainStateResponse { enabled })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-/// Returns the enable state of the ISC board's RF output.
-///
-/// Enable state can be set with `SetRFOutput`, but there are also many status
-/// conditions that turn RF output OFF for safety reasons. Check `GetStatus` for details.
-pub struct GetRFOutput {
+/// Returns the enable state of the auto-gain algorithm.
+pub struct GetAutoGainState {
     /// Channel identification number.
     pub channel: Channel,
 }
 
-impl Into<String> for GetRFOutput {
+impl Into<String> for GetAutoGainState {
     fn into(self) -> String {
-        format!("$ECG,{}", self.channel)
+        format!("$AGEG,{}", self.channel)
     }
 }
 
-impl GetRFOutput {
+impl GetAutoGainState {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
     pub fn new(self, channel: Channel) -> Self {
@@ -127,7 +140,7 @@ impl GetRFOutput {
     }
 }
 
-impl Default for GetRFOutput {
+impl Default for GetAutoGainState {
     /// Returns the default handler to call the command.
     fn default() -> Self {
         Self {

@@ -93,7 +93,7 @@ impl TryFrom<String> for SetVGAAttenuationDBResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-/// To use this command, auto-gain must be disabled (// Command isn't documented)
+/// TO USE THIS COMMAND, `SetAutoGain` MUST BE DISABLED FIRST
 ///
 /// Set the attenuation of the variable gain amplifier (VGA) which regulates
 /// the ISC board's power output.

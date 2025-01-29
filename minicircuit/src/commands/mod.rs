@@ -1,5 +1,6 @@
 pub mod commands;
 
+pub mod auto_gain;
 pub mod channel_id;
 pub mod clear_errors;
 pub mod clock_source;
@@ -8,6 +9,7 @@ pub mod frequency;
 pub mod identity;
 pub mod iq_magnitude;
 pub mod isc_power;
+pub mod isc_temp;
 pub mod pa_power;
 pub mod pa_temp;
 pub mod phase;

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    drivers::data_types::types::{Channel, Dbm, Temperature},
+    drivers::data_types::types::{Amperes, Channel, Dbm, Temperature, Watt},
     errors::MWError,
 };
 
@@ -110,7 +110,7 @@ impl Default for SetSOAConfig {
             temp_enabled: true,
             reflection_enabled: true,
             external_watchdog_enabled: true,
-            dissipation_enabled: true,
+            dissipation_enabled: false,
         }
     }
 }
@@ -580,6 +580,477 @@ impl GetSOATempConfig {
 }
 
 impl Default for GetSOATempConfig {
+    /// Returns the default handler to call the command.
+    fn default() -> Self {
+        Self {
+            channel: Channel::default(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SetSOACurrentConfigResponse {
+    /// The result of the command (Ok/Err).
+    pub result: Result<(), MWError>,
+}
+
+impl TryFrom<String> for SetSOACurrentConfigResponse {
+    type Error = MWError;
+
+    fn try_from(response: String) -> Result<Self, Self::Error> {
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
+        }
+
+        Ok(SetSOACurrentConfigResponse { result: Ok(()) })
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Sets the currents at which SOA takes action.
+///
+/// One of the features of the SOA is protection against improper
+/// application of DC current. Current SOA protects against overcurrent conditions.
+///
+/// The SOA has two reactions to excessive current, depending on the severity:
+///
+/// - If the current is higher than normal operating range, but still tolerable: raise a `SOAHighCurrent` error.
+///
+/// - If the current is dangerously high: raise a `SOAShutdownMaximumCurrent` error and shutdown RF power.
+pub struct SetSOACurrentConfig {
+    /// Channel identification number.
+    pub channel: Channel,
+    /// The current at which the ‘SOAHighCurrent’ condition is signaled by the SOA. Units in Amps.
+    pub high_current: Amperes,
+    /// The current at which the ‘SOAShutdownCurrent’ condition is signaled by the SOA. Units in Amps.
+    pub shutdown_current: Amperes,
+}
+
+impl Into<String> for SetSOACurrentConfig {
+    fn into(self) -> String {
+        format!(
+            "$SCS,{},{},{}",
+            self.channel, self.high_current, self.shutdown_current
+        )
+    }
+}
+
+impl SetSOACurrentConfig {
+    /// Returns a handler to call the command using the given inputs.
+    pub fn new(self, channel: Channel, high_current: Amperes, shutdown_current: Amperes) -> Self {
+        Self {
+            channel,
+            high_current,
+            shutdown_current,
+        }
+    }
+}
+
+impl Default for SetSOACurrentConfig {
+    /// Returns the default handler to call the command.
+    /// By default, high current is set to 5.5A,
+    /// and shutdown temperature is set to 6A.
+    fn default() -> Self {
+        Self {
+            channel: Channel::default(),
+            high_current: Amperes::new(5.5),
+            shutdown_current: Amperes::new(6.),
+        }
+    }
+}
+
+pub struct GetSOACurrentConfigResponse {
+    /// The current at which the `SOAHighCurrent` condition is signaled by the SOA in Amps.
+    pub high_current: Amperes,
+    /// The current at which the `SOAShutdownCurrent` condition is signaled by the SOA in Amps.
+    pub shutdown_current: Amperes,
+}
+
+impl TryFrom<String> for GetSOACurrentConfigResponse {
+    type Error = MWError;
+
+    fn try_from(response: String) -> Result<Self, Self::Error> {
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
+        }
+
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
+
+        // Ensure the input has the expected number of parts
+        if parts.len() != 4 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+
+        let high_current: Amperes = match parts[2].trim().parse::<f32>() {
+            Ok(value) => Amperes::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
+        let shutdown_current: Amperes = match parts[3].trim().parse::<f32>() {
+            Ok(value) => Amperes::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
+
+        Ok(GetSOACurrentConfigResponse {
+            high_current,
+            shutdown_current,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Returns the currents at which SOA takes action.
+///
+/// One of the features of the SOA is protection against improper
+/// application of DC current. Current SOA protects against overcurrent conditions.
+///
+/// The SOA has two reactions to excessive current, depending on the severity:
+///
+/// - If the current is higher than normal operating range, but still tolerable: raise a `SOAHighCurrent` error.
+///
+/// - If the current is dangerously high: raise a `SOAShutdownMaximumCurrent` error and shutdown RF power.
+pub struct GetSOACurrentConfig {
+    /// Channel identification number.
+    pub channel: Channel,
+}
+
+impl Into<String> for GetSOACurrentConfig {
+    fn into(self) -> String {
+        format!("$SCG,{}", self.channel)
+    }
+}
+
+impl GetSOACurrentConfig {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
+        Self { channel }
+    }
+}
+
+impl Default for GetSOACurrentConfig {
+    /// Returns the default handler to call the command.
+    fn default() -> Self {
+        Self {
+            channel: Channel::default(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SetSOADissipationConfigResponse {
+    /// The result of the command (Ok/Err).
+    pub result: Result<(), MWError>,
+}
+
+impl TryFrom<String> for SetSOADissipationConfigResponse {
+    type Error = MWError;
+
+    fn try_from(response: String) -> Result<Self, Self::Error> {
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
+        }
+
+        Ok(SetSOADissipationConfigResponse { result: Ok(()) })
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Sets the dissipation at which SOA takes action in Watts.
+///
+/// One of the features of the SOA is protection against excessive power dissipation inside a generator.
+/// Excessive power dissipation occurs when an RF system draws a disproportionate amount of current from it's
+/// power supply (PSU) relative to the amount RF energy that is transmitted into a load. High dissipation
+/// can be reached when the system is poorly matched or when the system is well matched but still operating
+/// with poor efficiency. At the system level, dissipation is the rate that heat needs to be removed from the
+/// generator by means of heat sink or cooling plate to maintain a stable temperature. The dissipation SOA
+/// could be used in systems with limited cooling capacity to issue a warning to the user to shut the generator
+/// down before it has a change to heat up to the temperature shutdown limit.
+pub struct SetSOADissipationConfig {
+    /// Channel identification number.
+    pub channel: Channel,
+    /// The dissipation value in W at which the `HighDissipation` reaction is performed by the SOA.
+    pub high_dissipation: Watt,
+    /// The dissipation value in W at which the `ShutdownDissipation` reaction is performed by the SOA.
+    pub shutdown_dissipation: Watt,
+}
+
+impl Into<String> for SetSOADissipationConfig {
+    fn into(self) -> String {
+        format!(
+            "$SDS,{},{},{}",
+            self.channel, self.high_dissipation, self.shutdown_dissipation
+        )
+    }
+}
+
+impl SetSOADissipationConfig {
+    /// Returns a handler to call the command using the given inputs.
+    pub fn new(self, channel: Channel, high_dissipation: Watt, shutdown_dissipation: Watt) -> Self {
+        Self {
+            channel,
+            high_dissipation,
+            shutdown_dissipation,
+        }
+    }
+}
+
+impl Default for SetSOADissipationConfig {
+    /// Returns the default handler to call the command.
+    /// By default, protection values are both configured to 0W.
+    /// Since this SOA is not enabled by default, these values have no effect on the system operation.
+    fn default() -> Self {
+        Self {
+            channel: Channel::default(),
+            high_dissipation: Watt::new(0.),
+            shutdown_dissipation: Watt::new(0.),
+        }
+    }
+}
+
+pub struct GetSOADissipationConfigResponse {
+    /// The dissipation value in W at which the `HighDissipation` reaction is performed by the SOA.
+    pub high_dissipation: Watt,
+    /// The dissipation value in W at which the `ShutdownDissipation` reaction is performed by the SOA.
+    pub shutdown_dissipation: Watt,
+}
+
+impl TryFrom<String> for GetSOADissipationConfigResponse {
+    type Error = MWError;
+
+    fn try_from(response: String) -> Result<Self, Self::Error> {
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
+        }
+
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
+
+        // Ensure the input has the expected number of parts
+        if parts.len() != 4 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+
+        let high_dissipation: Watt = match parts[2].trim().parse::<f32>() {
+            Ok(value) => Watt::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
+        let shutdown_dissipation: Watt = match parts[3].trim().parse::<f32>() {
+            Ok(value) => Watt::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
+
+        Ok(GetSOADissipationConfigResponse {
+            high_dissipation,
+            shutdown_dissipation,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Returns the dissipation at which SOA takes action in Watts.
+///
+/// One of the features of the SOA is protection against excessive power dissipation inside a generator.
+/// Excessive power dissipation occurs when an RF system draws a disproportionate amount of current from it's
+/// power supply (PSU) relative to the amount RF energy that is transmitted into a load. High dissipation
+/// can be reached when the system is poorly matched or when the system is well matched but still operating
+/// with poor efficiency. At the system level, dissipation is the rate that heat needs to be removed from the
+/// generator by means of heat sink or cooling plate to maintain a stable temperature. The dissipation SOA
+/// could be used in systems with limited cooling capacity to issue a warning to the user to shut the generator
+/// down before it has a change to heat up to the temperature shutdown limit.
+pub struct GetSOADissipationConfig {
+    /// Channel identification number.
+    pub channel: Channel,
+}
+
+impl Into<String> for GetSOADissipationConfig {
+    fn into(self) -> String {
+        format!("$SDG,{}", self.channel)
+    }
+}
+
+impl GetSOADissipationConfig {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
+        Self { channel }
+    }
+}
+
+impl Default for GetSOADissipationConfig {
+    /// Returns the default handler to call the command.
+    fn default() -> Self {
+        Self {
+            channel: Channel::default(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SetSOAForwardPowerLimitsResponse {
+    /// The result of the command (Ok/Err).
+    pub result: Result<(), MWError>,
+}
+
+impl TryFrom<String> for SetSOAForwardPowerLimitsResponse {
+    type Error = MWError;
+
+    fn try_from(response: String) -> Result<Self, Self::Error> {
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
+        }
+
+        Ok(SetSOAForwardPowerLimitsResponse { result: Ok(()) })
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Sets the forward power values at which SOA takes action in Watts.
+///
+/// One of the features of the SOA is protection against excessive forward power.
+///
+/// The SOA has two reactions to excess forward power, depending on the severity:
+///
+/// - If the forward power is high, but still tolerable: raise a `HighForwardPower` error.
+///
+/// - If the forward power is dangerously high: raise a `ShutdownForwardPower` error and shutdown RF power.
+pub struct SetSOAForwardPowerLimits {
+    /// Channel identification number.
+    pub channel: Channel,
+    /// The forward power value in dBm at which the `HighForwardPower` reaction is performed by the SOA.
+    pub high_forward_power: Watt,
+    /// The forward power value in dBm at which the `ShutdownForwardPower` reaction is performed by the SOA.
+    pub shutdown_forward_power: Watt,
+}
+
+impl Into<String> for SetSOAForwardPowerLimits {
+    fn into(self) -> String {
+        format!(
+            "$SFS,{},{},{}",
+            self.channel, self.high_forward_power, self.shutdown_forward_power
+        )
+    }
+}
+
+impl SetSOAForwardPowerLimits {
+    /// Returns a handler to call the command using the given inputs.
+    pub fn new(
+        self,
+        channel: Channel,
+        high_forward_power: Watt,
+        shutdown_forward_power: Watt,
+    ) -> Self {
+        Self {
+            channel,
+            high_forward_power,
+            shutdown_forward_power,
+        }
+    }
+}
+
+impl Default for SetSOAForwardPowerLimits {
+    /// Returns the default handler to call the command.
+    /// By default, protection values are configured to 55W (47.4 dBm)
+    /// and 65W (48.15 dBm) respectively.
+    fn default() -> Self {
+        Self {
+            channel: Channel::default(),
+            high_forward_power: Watt::new(55.),
+            shutdown_forward_power: Watt::new(65.),
+        }
+    }
+}
+
+pub struct GetSOAForwardPowerLimitsResponse {
+    /// The forward power value in dBm at which the `HighForwardPower` reaction is performed by the SOA.
+    pub high_forward_power: Watt,
+    /// The forward power value in dBm at which the `ShutdownForwardPower` reaction is performed by the SOA.
+    pub shutdown_forward_power: Watt,
+}
+
+impl TryFrom<String> for GetSOAForwardPowerLimitsResponse {
+    type Error = MWError;
+
+    fn try_from(response: String) -> Result<Self, Self::Error> {
+        // First, check for errors in the response
+        if response.contains("ERR") {
+            let response_error: Self::Error = response.into();
+            return Err(response_error);
+        }
+
+        // If there are no errors parse the response into struct components
+        let parts: Vec<&str> = response.split(',').collect();
+
+        // Ensure the input has the expected number of parts
+        if parts.len() != 4 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+
+        let high_forward_power: Watt = match parts[2].trim().parse::<f32>() {
+            Ok(value) => Watt::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
+        let shutdown_forward_power: Watt = match parts[3].trim().parse::<f32>() {
+            Ok(value) => Watt::new(value),
+            Err(_) => {
+                return Err(Self::Error::FailedParseResponse);
+            }
+        };
+
+        Ok(GetSOAForwardPowerLimitsResponse {
+            high_forward_power,
+            shutdown_forward_power,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Returns the forward power values at which SOA takes action in Watts.
+///
+/// One of the features of the SOA is protection against excessive forward power.
+///
+/// The SOA has two reactions to excess forward power, depending on the severity:
+///
+/// - If the forward power is high, but still tolerable: raise a `HighForwardPower` error.
+///
+/// - If the forward power is dangerously high: raise a `ShutdownForwardPower` error and shutdown RF power.
+pub struct GetSOAForwardPowerLimits {
+    /// Channel identification number.
+    pub channel: Channel,
+}
+
+impl Into<String> for GetSOAForwardPowerLimits {
+    fn into(self) -> String {
+        format!("$SFG,{}", self.channel)
+    }
+}
+
+impl GetSOAForwardPowerLimits {
+    /// Returns a handler to call the command.
+    /// Use ::default() if channel specifier isn't unique.
+    pub fn new(self, channel: Channel) -> Self {
+        Self { channel }
+    }
+}
+
+impl Default for GetSOAForwardPowerLimits {
     /// Returns the default handler to call the command.
     fn default() -> Self {
         Self {

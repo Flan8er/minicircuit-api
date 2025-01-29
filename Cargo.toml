@@ -1,2 +1,2 @@
 [workspace]
-members = ["minicircuit"]
+members = [ "example","minicircuit", "sim"]

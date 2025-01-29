@@ -25,7 +25,7 @@ impl TryFrom<String> for SetQIMagPercentResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-/// TO USE THIS COMMAND, AUTO-GAIN MUST BE DISABLED FIRST (command not documented)
+/// TO USE THIS COMMAND, `SetAutoGain` MUST BE DISABLED FIRST
 ///
 /// This command sets the magnitude setting of the IQ modulator, which regulates the ISC board's power output.
 /// The higher the value, the higher the power output.

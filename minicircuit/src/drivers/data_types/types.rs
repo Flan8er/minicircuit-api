@@ -86,7 +86,7 @@ impl Display for Watt {
 
 // --------------------------------------------------------------- //
 //                                                                 //
-// ------------------------------Dbm------------------------------ //
+// ------------------------------dBm------------------------------ //
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -111,10 +111,88 @@ impl Display for Dbm {
 
 // --------------------------------------------------------------- //
 //                                                                 //
+// ------------------------------ADC------------------------------ //
+//                                                                 //
+// --------------------------------------------------------------- //
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct Adc {
+    pub power: f32,
+}
+impl Adc {
+    pub fn new(power: f32) -> Self {
+        Self {
+            power: power.clamp(0., 4095.),
+        }
+    }
+}
+impl Into<f32> for Adc {
+    fn into(self) -> f32 {
+        self.power
+    }
+}
+impl Display for Adc {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{:.1}", self.power)
+    }
+}
+
+// --------------------------------------------------------------- //
+//                                                                 //
+// ----------------------------Amperes---------------------------- //
+//                                                                 //
+// --------------------------------------------------------------- //
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct Amperes {
+    pub current: f32,
+}
+impl Amperes {
+    pub fn new(current: f32) -> Self {
+        Self { current }
+    }
+}
+impl Into<f32> for Amperes {
+    fn into(self) -> f32 {
+        self.current
+    }
+}
+impl Display for Amperes {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{:.1}", self.current)
+    }
+}
+
+// --------------------------------------------------------------- //
+//                                                                 //
+// -----------------------------Volts----------------------------- //
+//                                                                 //
+// --------------------------------------------------------------- //
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct Volts {
+    pub voltage: f32,
+}
+impl Volts {
+    pub fn new(voltage: f32) -> Self {
+        Self { voltage }
+    }
+}
+impl Into<f32> for Volts {
+    fn into(self) -> f32 {
+        self.voltage
+    }
+}
+impl Display for Volts {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{:.1}", self.voltage)
+    }
+}
+
+// --------------------------------------------------------------- //
+//                                                                 //
 // --------------------------Temperature-------------------------- //
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Units of °C.
 pub struct Temperature {
     pub temperature: u8,
 }
