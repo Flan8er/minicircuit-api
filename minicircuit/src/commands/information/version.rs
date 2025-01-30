@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{drivers::data_types::types::Channel, errors::MWError};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// The current version of the firmware.
 pub struct VersionResponse {
     // Firmware developer identifier.
@@ -85,7 +85,7 @@ fn parse_without_hotfix(parts: Vec<&str>) -> VersionResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the current version of the firmware.
 pub struct GetVersion {
     /// Desired channel identification number.

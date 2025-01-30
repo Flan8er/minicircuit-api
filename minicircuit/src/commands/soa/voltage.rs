@@ -167,7 +167,7 @@ impl TryFrom<String> for GetSOAVoltageConfigResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the enable state of the SOA's protection systems.
 pub struct GetSOAVoltageConfig {
     /// Channel identification number.

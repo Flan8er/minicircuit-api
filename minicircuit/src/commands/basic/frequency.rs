@@ -24,7 +24,7 @@ impl TryFrom<String> for SetFrequencyResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Sets the frequecy of the ISC board's RF output to the desired value in MHz.
 pub struct SetFrequency {
     /// Channel identification number.
@@ -58,7 +58,7 @@ impl Default for SetFrequency {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetFrequencyResponse {
     /// Current frequency setting of the ISC board (in MHz).
     pub frequency: Frequency,
@@ -93,7 +93,7 @@ impl TryFrom<String> for GetFrequencyResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the frequency of the ISC board's RF output in MHz.
 pub struct GetFrequency {
     /// Channel identification number.

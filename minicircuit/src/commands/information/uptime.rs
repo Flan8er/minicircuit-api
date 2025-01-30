@@ -5,7 +5,7 @@ use crate::{
     errors::MWError,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// The uptime of the ISC board since its initialization. The uptime count restarts when the board is
 /// reset.
 pub struct GetUptimeResponse {
@@ -44,7 +44,7 @@ impl TryFrom<String> for GetUptimeResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the uptime of the ISC board since its initialization.
 /// The uptime count restarts when the board is reset.
 pub struct GetUptime {

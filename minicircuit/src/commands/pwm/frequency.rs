@@ -24,7 +24,7 @@ impl TryFrom<String> for SetPWMFrequencyResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Sets the frequency of the PWM signal.
 pub struct SetPWMFrequency {
     /// Channel identification number.

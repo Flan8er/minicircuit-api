@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{drivers::data_types::types::Channel, errors::MWError};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// ISC-(frequency_low)(frequency_high)-(power)+
 ///
 /// (frequency_low) - Lower frequency limit (only first 2 digits).
@@ -51,7 +51,7 @@ impl TryFrom<String> for IdentityResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the identity of the ISC board.
 pub struct GetIdentity {
     /// Desired channel identification number.

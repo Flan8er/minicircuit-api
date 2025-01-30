@@ -40,7 +40,7 @@ impl TryFrom<String> for GetPACurrentResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the DC current reading of the ISC in Amps.
 pub struct GetPACurrent {
     /// Channel identification number.

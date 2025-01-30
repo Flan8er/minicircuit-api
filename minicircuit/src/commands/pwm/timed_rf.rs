@@ -21,7 +21,7 @@ impl TryFrom<String> for SetTimedRFEnableResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Initiates a single timed enable of specified duration.
 pub struct SetTimedRFEnable {
     /// Channel identification number.

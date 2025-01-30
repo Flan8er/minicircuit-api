@@ -21,7 +21,7 @@ impl TryFrom<String> for SetSOAGraceTimerResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Configures the grace period for the SOA's protection systems.
 ///
 /// There may be situations where it is desirable to permit a grace period before SOA acts

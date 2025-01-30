@@ -5,7 +5,7 @@ use crate::{
     errors::MWError,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetPWMDutyCycleResponse {
     /// The current PWM frequency.
     pub frequency: Frequency,
@@ -51,7 +51,7 @@ impl TryFrom<String> for GetPWMDutyCycleResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns all the settings relating to PWM.
 pub struct GetPWMDutyCycle {
     /// Channel identification number.
@@ -100,7 +100,7 @@ impl TryFrom<String> for SetPWMDutyCycleResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Sets the PWM duty cycle between 0% and 100%.
 ///
 /// This command doubles as a PWM ON/OFF switch. Setting the duty cycle

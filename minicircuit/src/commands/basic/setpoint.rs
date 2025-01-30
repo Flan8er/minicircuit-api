@@ -91,7 +91,7 @@ impl TryFrom<String> for GetPAPowerSetpointWattResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the configured output power setpoint in watts.
 pub struct GetPAPowerSetpointWatt {
     /// Channel identification number.
@@ -207,7 +207,7 @@ impl TryFrom<String> for GetPAPowerSetpointDBMResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the configured output power setpoint in dBm.
 pub struct GetPAPowerSetpointDBM {
     /// Channel identification number.

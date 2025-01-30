@@ -21,7 +21,7 @@ impl TryFrom<String> for SetDLLEnabledResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Turns DLL mode ON or OFF
 ///
 /// True = On,
@@ -65,7 +65,7 @@ impl Default for SetDLLEnabled {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetDLLEnabledResponse {
     /// Whether the DLL mode is currently turned ON or OFF
     pub enabled: bool,
@@ -103,7 +103,7 @@ impl TryFrom<String> for GetDLLEnabledResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the state of DLL mode - either turned ON or OFF
 pub struct GetDLLEnabled {
     /// Channel identification number.

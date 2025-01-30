@@ -48,7 +48,7 @@ impl TryFrom<String> for GetPAPowerWattResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the forward and reflected power in watts.
 pub struct GetPAPowerWatt {
     /// Channel identification number.
@@ -121,7 +121,7 @@ impl TryFrom<String> for GetPAPowerDBMResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the forward and reflected power of the power amplifier in dBm.
 pub struct GetPAPowerDBM {
     /// Channel identification number.

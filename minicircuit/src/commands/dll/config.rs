@@ -192,7 +192,7 @@ impl TryFrom<String> for GetDLLConfigResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetDLLConfig {
     /// Channel identification number.
     pub channel: Channel,

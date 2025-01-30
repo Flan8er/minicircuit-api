@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{drivers::data_types::types::Channel, errors::MWError};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetPAErrorsResponse {
     /// Error code of the PA displayed in decimal. For reference,
     /// the codes of the ZHL-2425-250X+ are shown below:
@@ -64,7 +64,7 @@ impl TryFrom<String> for GetPAErrorsResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Gets the status of the power amplifier (PA). If the status is 0, this indicates normal operation.
 /// If the status is non-zero, one or more PA internal protection limits have been triggered.
 /// Typically, this means that the PA will have already shut itself down in self-protection.

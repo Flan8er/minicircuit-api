@@ -122,7 +122,7 @@ impl TryFrom<String> for GetSOACurrentConfigResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the currents at which SOA takes action.
 ///
 /// One of the features of the SOA is protection against improper

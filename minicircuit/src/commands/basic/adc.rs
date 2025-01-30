@@ -48,7 +48,7 @@ impl TryFrom<String> for GetPAPowerADCResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the forward and reflected power as ADC counts.
 ///
 /// Depending on the PA Type, these ADC counts are either converted from the analog voltage inputs on the ISC board,

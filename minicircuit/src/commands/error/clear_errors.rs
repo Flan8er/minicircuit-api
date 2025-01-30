@@ -21,7 +21,7 @@ impl TryFrom<String> for ClearErrorsResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Clears the error state of the ISC board and resets the protective systems
 /// that impede the board while an error is present.
 pub struct ClearErrors {

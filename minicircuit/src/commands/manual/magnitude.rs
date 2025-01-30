@@ -24,7 +24,7 @@ impl TryFrom<String> for SetMagnitudeResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// TO USE THIS COMMAND, `SetAutoGain` MUST BE DISABLED FIRST
 ///
 /// This command sets the magnitude setting of the IQ modulator, which regulates the ISC board's power output.
@@ -62,7 +62,7 @@ impl Default for SetMagnitude {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetMagnitudeResponse {
     /// The current magnitude configuration of the IQ modulator in percent.
     pub magnitude: Percentage,
@@ -97,7 +97,7 @@ impl TryFrom<String> for GetMagnitudeResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Gets the magnitude of the IQ modulator.
 pub struct GetMagnitude {
     /// Channel identification number.

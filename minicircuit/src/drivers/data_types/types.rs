@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 // --------------------------Frequency---------------------------- //
 //                                                                 //
 // --------------------------------------------------------------- //
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Frequency {
     /// Typical values are in MHz.
     pub frequency: u16,
@@ -34,7 +34,7 @@ impl Display for Frequency {
 // ---------------------------Channel----------------------------- //
 //                                                                 //
 // --------------------------------------------------------------- //
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Channel {
     pub channel_id: u8,
 }
@@ -83,6 +83,15 @@ impl Display for Watt {
         write!(f, "{:.1}", self.power)
     }
 }
+impl From<Dbm> for Watt {
+    fn from(dbm_value: Dbm) -> Watt {
+        let dbm_value: f32 = dbm_value.into();
+
+        let converted = (10.0_f32.powf(dbm_value / 10.0_f32)) / 1000.0_f32;
+
+        Watt::new(converted)
+    }
+}
 
 // --------------------------------------------------------------- //
 //                                                                 //
@@ -106,6 +115,15 @@ impl Into<f32> for Dbm {
 impl Display for Dbm {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{:.1}", self.power)
+    }
+}
+impl From<Watt> for Dbm {
+    fn from(watt_value: Watt) -> Dbm {
+        let watt_value: f32 = watt_value.into();
+
+        let converted = 10.0 * (watt_value * 1000.0).log10();
+
+        Dbm::new(converted)
     }
 }
 
@@ -191,7 +209,7 @@ impl Display for Volts {
 // --------------------------Temperature-------------------------- //
 //                                                                 //
 // --------------------------------------------------------------- //
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Units of °C.
 pub struct Temperature {
     pub temperature: u8,
@@ -217,7 +235,7 @@ impl Display for Temperature {
 // ----------------------------Seconds---------------------------- //
 //                                                                 //
 // --------------------------------------------------------------- //
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Seconds {
     pub seconds: u64,
 }
@@ -244,81 +262,10 @@ impl Default for Seconds {
 
 // --------------------------------------------------------------- //
 //                                                                 //
-// --------------------------Clock Source------------------------- //
-//                                                                 //
-// --------------------------------------------------------------- //
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-/// 0 - Standalone
-///
-/// 1 - Master
-///
-/// 2 - Slave
-///
-/// 3 - Slave inline
-pub enum ClockSource {
-    /// Default.
-    ///
-    /// Use onboard XCO.
-    ///
-    /// Do not output reference signal.
-    Standalone,
-    /// Use onboard XCO.
-    ///
-    /// Output reference signal to slaves using LVDS.
-    Master,
-    /// Use external clock reference from LVDS.
-    ///
-    /// Do not output reference signal.
-    Slave,
-    /// Use external clock reference from LVDS.
-    ///
-    /// Output reference signal to slaves using LVDS.
-    SlaveInline,
-}
-impl ClockSource {
-    /// 0 => Standalone
-    /// 1 => Master
-    /// 2 => Slave
-    /// 3 => SlaveInline
-    pub fn new(key: u8) -> Self {
-        match key {
-            0 => Self::Standalone,
-            1 => Self::Master,
-            2 => Self::Slave,
-            3 => Self::SlaveInline,
-            _ => Self::Standalone,
-        }
-    }
-}
-impl Into<u8> for ClockSource {
-    /// Converts a clock source variant into it's u8 equivalent.
-    fn into(self) -> u8 {
-        match self {
-            ClockSource::Standalone => 0,
-            ClockSource::Master => 1,
-            ClockSource::Slave => 2,
-            ClockSource::SlaveInline => 3,
-        }
-    }
-}
-impl Display for ClockSource {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        let source: u8 = self.to_owned().into();
-        write!(f, "{}", source)
-    }
-}
-impl Default for ClockSource {
-    fn default() -> Self {
-        Self::Standalone
-    }
-}
-
-// --------------------------------------------------------------- //
-//                                                                 //
 // ----------------------------Phase------------------------------ //
 //                                                                 //
 // --------------------------------------------------------------- //
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Phase {
     /// Values are in degrees.
     pub phase: u16,
@@ -384,7 +331,7 @@ impl Display for Attenuation {
 // --------------------------Percentage--------------------------- //
 //                                                                 //
 // --------------------------------------------------------------- //
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Percentage {
     pub percentage: u8,
 }
@@ -411,7 +358,7 @@ impl Display for Percentage {
 // -----------------------Correction Factor----------------------- //
 //                                                                 //
 // --------------------------------------------------------------- //
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct CorrectionFactor {
     pub correction_factor: u8,
 }
@@ -436,7 +383,7 @@ impl std::fmt::Display for CorrectionFactor {
 // --------------------------Main Delay--------------------------- //
 //                                                                 //
 // --------------------------------------------------------------- //
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct MainDelay {
     pub main_delay: u16,
 }

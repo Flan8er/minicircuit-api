@@ -24,7 +24,7 @@ impl TryFrom<String> for SetPhaseResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Sets the phase of the ISC board's RF output in degrees.
 ///
 /// The phase set is reference to the selected clock source (see ClockSource).
@@ -62,7 +62,7 @@ impl Default for SetPhase {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetPhaseResponse {
     /// Current phase value of the ISC board (in degrees).
     pub phase: Phase,
@@ -97,7 +97,7 @@ impl TryFrom<String> for GetPhaseResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the current phase value of the ISC board's RF output in degrees.
 pub struct GetPhase {
     /// Channel identification number.

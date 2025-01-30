@@ -75,7 +75,7 @@ define_status_codes! {
     SOAShutdownMaximumVoltage => 0x800000000,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// List of status codes stored on the ISC board.
 pub struct StatusResponse {
     pub status_codes: Vec<Status>,
@@ -112,7 +112,7 @@ impl TryFrom<String> for StatusResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Used to monitor the status of the ISC board.
 ///
 /// ISC boards have a safety feature called the 'Safe Operating Area' (SOA).
@@ -129,7 +129,7 @@ pub struct GetStatus {
 
 impl Into<String> for GetStatus {
     fn into(self) -> String {
-        format!("$ST,{}", self.channel)
+        format!("$ST,{},0", self.channel)
     }
 }
 
@@ -150,7 +150,8 @@ impl Default for GetStatus {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+/// The system's status and its response to the status.
 pub struct Status {
     /// The status of the ISC board.
     pub status: String,

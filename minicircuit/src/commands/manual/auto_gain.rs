@@ -21,7 +21,7 @@ impl TryFrom<String> for SetAutoGainStateResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Turns the auto-gain algorithm ON or OFF.
 ///
 /// The auto-gain algorithm automatically regulates the power output of the ISC board by configuring the DSA and Modulator bias
@@ -77,7 +77,7 @@ impl Default for SetAutoGainState {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetAutoGainStateResponse {
     /// Current enable state of the auto-gain algorithm.
     ///
@@ -119,7 +119,7 @@ impl TryFrom<String> for GetAutoGainStateResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the enable state of the auto-gain algorithm.
 pub struct GetAutoGainState {
     /// Channel identification number.

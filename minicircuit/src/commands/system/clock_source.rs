@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    drivers::data_types::types::{Channel, ClockSource},
-    errors::MWError,
-};
+use crate::{drivers::data_types::types::Channel, errors::MWError};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SetClockSourceResponse {
@@ -24,8 +21,8 @@ impl TryFrom<String> for SetClockSourceResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-/// Sets the clock source configuration of the ISC board.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+/// Sets the clock source configuration (or "coherency mode") of the ISC board.
 ///
 /// An ISC board can either use its own internal 10MHz Crystal Controlled Oscillator (XCO),
 /// or it can accept an external clock reference from another ISC board.
@@ -40,8 +37,8 @@ pub struct SetClockSource {
 
 impl Into<String> for SetClockSource {
     fn into(self) -> String {
-        // let numeric_source: u8 = self.clock_source.into();
-        format!("$CSS,{},{}", self.channel, self.clock_source)
+        let clock_source: u8 = self.clock_source.into();
+        format!("$CSS,{},{}", self.channel, clock_source)
     }
 }
 
@@ -61,12 +58,12 @@ impl Default for SetClockSource {
     fn default() -> Self {
         Self {
             channel: Channel::default(),
-            clock_source: ClockSource::default(),
+            clock_source: ClockSource::Standalone,
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetClockSourceResponse {
     /// Clock source configuration of the ISC board
     pub clock_source: ClockSource,
@@ -101,7 +98,7 @@ impl TryFrom<String> for GetClockSourceResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the clock source configuration of the ISC board.
 pub struct GetClockSource {
     /// Channel identification number.
@@ -130,3 +127,74 @@ impl Default for GetClockSource {
         }
     }
 }
+
+// --------------------------------------------------------------- //
+//                                                                 //
+// --------------------------Clock Source------------------------- //
+//                                                                 //
+// --------------------------------------------------------------- //
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+/// 0 - Standalone
+///
+/// 1 - Master
+///
+/// 2 - Slave
+///
+/// 3 - Slave inline
+pub enum ClockSource {
+    /// Default.
+    ///
+    /// Use onboard XCO.
+    ///
+    /// Do not output reference signal.
+    Standalone,
+    /// Use onboard XCO.
+    ///
+    /// Output reference signal to slaves using LVDS.
+    Master,
+    /// Use external clock reference from LVDS.
+    ///
+    /// Do not output reference signal.
+    Slave,
+    /// Use external clock reference from LVDS.
+    ///
+    /// Output reference signal to slaves using LVDS.
+    SlaveInline,
+}
+impl ClockSource {
+    /// 0 => Standalone
+    /// 1 => Master
+    /// 2 => Slave
+    /// 3 => SlaveInline
+    pub fn new(key: u8) -> Self {
+        match key {
+            0 => Self::Standalone,
+            1 => Self::Master,
+            2 => Self::Slave,
+            3 => Self::SlaveInline,
+            _ => Self::Standalone,
+        }
+    }
+}
+impl Into<u8> for ClockSource {
+    /// Converts a clock source variant into it's u8 equivalent.
+    fn into(self) -> u8 {
+        match self {
+            ClockSource::Standalone => 0,
+            ClockSource::Master => 1,
+            ClockSource::Slave => 2,
+            ClockSource::SlaveInline => 3,
+        }
+    }
+}
+// impl Display for ClockSource {
+//     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+//         let source: u8 = self.to_owned().into();
+//         write!(f, "{}", source)
+//     }
+// }
+// impl Default for ClockSource {
+//     fn default() -> Self {
+//         Self::Standalone
+//     }
+// }

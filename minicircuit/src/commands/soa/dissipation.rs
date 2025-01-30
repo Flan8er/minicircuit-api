@@ -122,7 +122,7 @@ impl TryFrom<String> for GetSOADissipationConfigResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the dissipation at which SOA takes action in Watts.
 ///
 /// One of the features of the SOA is protection against excessive power dissipation inside a generator.

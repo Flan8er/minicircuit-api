@@ -21,7 +21,7 @@ impl TryFrom<String> for SetChannelIDResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Assigns a channel identification number to the specified ISC board.
 ///
 /// Every ISC board is assigned a numeric value as a challen identifier for communication.
@@ -50,6 +50,7 @@ impl SetChannelID {
         }
     }
 
+    /// Sets the system back to it's default state.
     pub fn return_to_default(self, current_channel: Channel) -> Self {
         Self {
             channel: current_channel,
@@ -58,7 +59,7 @@ impl SetChannelID {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetChannelIDResponse {
     /// Channel identification number.
     pub channel: Channel,
@@ -93,7 +94,7 @@ impl TryFrom<String> for GetChannelIDResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetChannelID {}
 
 impl Into<String> for GetChannelID {

@@ -24,7 +24,7 @@ impl TryFrom<String> for SetSOATempConfigResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Configures the temperature values at which SOA takes action.
 /// One of the features of the SOA is protection against excessive temperatures.
 /// Excessive temperatures can occur for any number of reasons: side effects of high
@@ -126,7 +126,7 @@ impl TryFrom<String> for GetSOATempConfigResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the temperature values at which the SOA takes action.
 pub struct GetSOATempConfig {
     /// Channel identification number.

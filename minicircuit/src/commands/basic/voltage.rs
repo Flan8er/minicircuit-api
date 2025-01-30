@@ -40,7 +40,7 @@ impl TryFrom<String> for GetPAVoltageResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the measured DC voltage of the PA in Volts.
 pub struct GetPAVoltage {
     /// Channel identification number.

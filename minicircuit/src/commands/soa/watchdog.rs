@@ -21,7 +21,7 @@ impl TryFrom<String> for SetSOAWatchdogConfigResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Turns the software watchdog ON or OFF
 ///
 /// The software watchdog is a function of the firmware which ensures that the various software components of the

@@ -95,7 +95,7 @@ impl TryFrom<String> for GetISCPowerOutputResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the last power set. The last power set does not indicate
 /// the current state of the VGA and IQ Modulator which could have changed due to
 /// calls to `SetMagnitude`, `SetAttenuation`, or any other function

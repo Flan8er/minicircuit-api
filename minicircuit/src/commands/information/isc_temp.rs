@@ -5,7 +5,7 @@ use crate::{
     errors::MWError,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetISCTempResponse {
     /// The temperature of the ISC microcontroller in °C.
     pub temperature: Temperature,
@@ -40,7 +40,7 @@ impl TryFrom<String> for GetISCTempResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the temperature of the microcontroller on the ISC board.
 pub struct GetISCTemp {
     /// Channel identification number.

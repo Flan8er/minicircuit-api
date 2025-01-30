@@ -46,7 +46,7 @@ impl TryFrom<String> for GetAttenuationResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the configured attenuation value of the VGA which regulates the ISC board's power output.
 /// The higher the value, the lower the power output.
 pub struct GetAttenuation {

@@ -5,7 +5,7 @@ use crate::{
     errors::MWError,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetPATempResponse {
     /// The temperature of the power amplifier (PA).
     pub temperature: Temperature,
@@ -40,7 +40,7 @@ impl TryFrom<String> for GetPATempResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the temperature of the power amplifier (PA).
 pub struct GetPATemp {
     /// Channel identification number.

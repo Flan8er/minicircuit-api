@@ -21,7 +21,7 @@ impl TryFrom<String> for SetRFOutputResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Turns RF output of the ISC board ON or OFF.
 ///
 /// Board is turned off by default.
@@ -65,7 +65,7 @@ impl Default for SetRFOutput {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetRFOutputResponse {
     /// State of the ISC board's output.
     ///
@@ -107,7 +107,7 @@ impl TryFrom<String> for GetRFOutputResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the enable state of the ISC board's RF output.
 ///
 /// Enable state can be set with `SetRFOutput`, but there are also many status

@@ -126,7 +126,7 @@ impl TryFrom<String> for GetSOAForwardPowerLimitsResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the forward power values at which SOA takes action in Watts.
 ///
 /// One of the features of the SOA is protection against excessive forward power.

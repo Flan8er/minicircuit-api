@@ -126,7 +126,7 @@ impl TryFrom<String> for GetSOAPowerConfigResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the reflection values at which SOA takes action.
 pub struct GetSOAPowerConfig {
     /// Channel identification number.

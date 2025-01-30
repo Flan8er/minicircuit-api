@@ -5,5 +5,5 @@ pub mod frequency;
 pub mod output;
 pub mod phase;
 pub mod setpoint;
-pub mod temp;
+pub mod temperature;
 pub mod voltage;

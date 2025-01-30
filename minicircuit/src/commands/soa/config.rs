@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{drivers::data_types::types::Channel, errors::MWError};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum SOAType {
     /// See `SetSOATempConfig`
     Temperature,
@@ -41,7 +41,7 @@ impl TryFrom<String> for SetSOAConfigResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Configures the enable state of the SOA's protection systems.
 ///
 /// SOA has the following protection systems in place:
@@ -94,7 +94,7 @@ impl SetSOAConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Voltage and forward power SOA enable statuses are not shown here. View their dedicated commands:
 ///
 /// `GetSOAVoltageLimits` and `GetSOAForwardPowerLimits`
@@ -202,7 +202,7 @@ impl TryFrom<String> for GetSOAConfigResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Returns the enable state of the SOA's protection systems.
 pub struct GetSOAConfig {
     /// Channel identification number.

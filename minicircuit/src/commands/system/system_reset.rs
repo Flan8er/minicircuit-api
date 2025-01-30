@@ -21,12 +21,12 @@ impl TryFrom<String> for ResetSystemResponse {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// Executes a reset of the ISC board.
 /// All board settings will return to their default states.
 ///
 /// Following a reset, whether intentional or as the result of a fault,
-/// the `reset detected` error flag (0x20) will be raised.
+/// the `ResetDetected` error flag (0x20) will be raised.
 pub struct ResetSystem {
     /// Channel identification number.
     pub channel: Channel,
