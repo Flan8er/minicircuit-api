@@ -427,3 +427,33 @@ impl std::fmt::Display for Threshold {
         write!(f, "{:.1}", self.threshold)
     }
 }
+
+// --------------------------------------------------------------- //
+//                                                                 //
+// --------------------------Baud Rate---------------------------- //
+//                                                                 //
+// --------------------------------------------------------------- //
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct BaudRate {
+    pub baud_rate: u32,
+}
+impl BaudRate {
+    pub fn new(baud_rate: u32) -> Self {
+        Self { baud_rate }
+    }
+}
+impl Default for BaudRate {
+    fn default() -> Self {
+        return Self { baud_rate: 115_200 };
+    }
+}
+impl Into<u32> for BaudRate {
+    fn into(self) -> u32 {
+        self.baud_rate
+    }
+}
+impl Display for BaudRate {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}", self.baud_rate)
+    }
+}

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::drivers::data_types::types::Channel;
+use crate::drivers::data_types::types::{BaudRate, Channel};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// THIS COMMAND DOES NOT REPLY.
@@ -24,7 +24,7 @@ pub struct SetUartBaudRate {
     pub channel: Channel,
     /// Baud rate in symbols per second. For UART to work, the baud rate on the
     /// Tx and Rx side must be configured to the same value.
-    pub baud_rate: u32,
+    pub baud_rate: BaudRate,
 }
 
 impl Into<String> for SetUartBaudRate {
@@ -35,7 +35,7 @@ impl Into<String> for SetUartBaudRate {
 
 impl SetUartBaudRate {
     /// Returns a handler to call the command with specified inputs.
-    pub fn new(self, channel: Channel, baud_rate: u32) -> Self {
+    pub fn new(self, channel: Channel, baud_rate: BaudRate) -> Self {
         Self { channel, baud_rate }
     }
 }
@@ -47,7 +47,7 @@ impl Default for SetUartBaudRate {
     fn default() -> Self {
         Self {
             channel: Channel::default(),
-            baud_rate: 115_200,
+            baud_rate: BaudRate::default(),
         }
     }
 }
