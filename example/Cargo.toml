@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 minicircuit = {path = "../minicircuit"}
+tokio = { version = "1", features = ["full"] }
