@@ -89,7 +89,7 @@ pub enum Response {
     PerformSweepWattResponse(PerformSweepWattResponse),
     ClearErrorsResponse(ClearErrorsResponse),
     GetPAErrorsResponse(GetPAErrorsResponse),
-    StatusResponse(GetStatusResponse),
+    GetStatusResponse(GetStatusResponse),
     GetIdentityResponse(GetIdentityResponse),
     GetISCTempResponse(GetISCTempResponse),
     GetUptimeResponse(GetUptimeResponse),
@@ -137,4 +137,5 @@ pub enum Response {
     SetZHLTriggerDelayResponse(SetZHLTriggerDelayResponse),
     ReadWriteError(ReadWriteError),
     MWError(MWError),
+    SetUartBaudRate,
 }
