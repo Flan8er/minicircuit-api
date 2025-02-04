@@ -15,7 +15,6 @@ impl TryFrom<String> for SetFrequencyResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        println!("{}", response);
         if response.contains("ERR") {
             let response_error: Self::Error = response.into();
             return Err(response_error);
@@ -69,7 +68,6 @@ impl TryFrom<String> for GetFrequencyResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        println!("{}", response);
         // First, check for errors in the response
         if response.contains("ERR") {
             let response_error: Self::Error = response.into();
@@ -84,11 +82,12 @@ impl TryFrom<String> for GetFrequencyResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let frequency: Frequency = match parts[2].trim().parse::<u16>() {
-            Ok(value) => Frequency::new(value),
-            Err(_) => {
-                return Err(Self::Error::FailedParseResponse);
-            }
+        let frequency: Frequency = match parts[2].trim().split('.').next() {
+            Some(int_part) => match int_part.parse::<u16>() {
+                Ok(value) => Frequency::new(value),
+                Err(_) => return Err(Self::Error::FailedParseResponse),
+            },
+            None => return Err(Self::Error::FailedParseResponse),
         };
 
         Ok(GetFrequencyResponse { frequency })
