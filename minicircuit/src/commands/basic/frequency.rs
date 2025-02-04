@@ -82,13 +82,18 @@ impl TryFrom<String> for GetFrequencyResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let frequency: Frequency = match parts[2].trim().split('.').next() {
-            Some(int_part) => match int_part.parse::<u16>() {
+        // let frequency: Frequency = match parts[2].trim().split('.').next() {
+        //     Some(int_part) => match int_part.parse::<u16>() {
+        //         Ok(value) => Frequency::new(value),
+        //         Err(_) => return Err(Self::Error::FailedParseResponse),
+        //     },
+        //     None => return Err(Self::Error::FailedParseResponse),
+        // };
+        let frequency: Frequency =
+            match parts[2].trim().split('.').collect::<Vec<&str>>()[0].parse::<u16>() {
                 Ok(value) => Frequency::new(value),
                 Err(_) => return Err(Self::Error::FailedParseResponse),
-            },
-            None => return Err(Self::Error::FailedParseResponse),
-        };
+            };
 
         Ok(GetFrequencyResponse { frequency })
     }
