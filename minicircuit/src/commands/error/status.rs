@@ -77,11 +77,11 @@ define_status_codes! {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// List of status codes stored on the ISC board.
-pub struct StatusResponse {
+pub struct GetStatusResponse {
     pub status_codes: Vec<Status>,
 }
 
-impl TryFrom<String> for StatusResponse {
+impl TryFrom<String> for GetStatusResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
@@ -108,7 +108,7 @@ impl TryFrom<String> for StatusResponse {
 
         let status_codes: Vec<Status> = Status::from_hex_code(hex_status_code);
 
-        Ok(StatusResponse { status_codes })
+        Ok(GetStatusResponse { status_codes })
     }
 }
 

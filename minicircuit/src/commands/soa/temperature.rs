@@ -79,6 +79,7 @@ impl Default for SetSOATempConfig {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetSOATempConfigResponse {
     /// The temperature value in deg C at which `HighTemperature` situation is signaled by the SOA.
     /// The corresponding bit in the status word is set and can be read with a `GetStatus` command.

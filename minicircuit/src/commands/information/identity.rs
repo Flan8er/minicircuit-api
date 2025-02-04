@@ -12,7 +12,7 @@ use crate::{drivers::data_types::types::Channel, errors::MWError};
 /// (power) - Maximum RF output power of the signal generator board in dBm.
 ///
 /// Ex: ISC-2425-25+
-pub struct IdentityResponse {
+pub struct GetIdentityResponse {
     /// Name of the manufacturer.
     pub manufacturer: String,
     /// The type of ISC board.
@@ -21,7 +21,7 @@ pub struct IdentityResponse {
     pub serial_number: String,
 }
 
-impl TryFrom<String> for IdentityResponse {
+impl TryFrom<String> for GetIdentityResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
@@ -43,7 +43,7 @@ impl TryFrom<String> for IdentityResponse {
         let isc_board = parts[3].trim().to_string();
         let serial_number = parts[4].trim().to_string();
 
-        Ok(IdentityResponse {
+        Ok(GetIdentityResponse {
             manufacturer,
             isc_board,
             serial_number,

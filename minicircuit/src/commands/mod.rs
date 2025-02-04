@@ -1,4 +1,5 @@
-pub mod commands;
+pub mod command;
+pub mod response;
 
 pub mod basic;
 pub mod dll;

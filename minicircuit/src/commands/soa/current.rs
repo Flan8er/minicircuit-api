@@ -77,6 +77,7 @@ impl Default for SetSOACurrentConfig {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetSOACurrentConfigResponse {
     /// The current at which the `SOAHighCurrent` condition is signaled by the SOA in Amps.
     pub high_current: Amperes,

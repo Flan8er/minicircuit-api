@@ -1,6 +1,8 @@
 use serialport::{Error, ErrorKind, SerialPort};
 use std::time::{Duration, Instant};
 
+use crate::commands::command::Command;
+
 /// A function to send commands to the serial port and receive it's response.
 pub fn write_read(port: &mut dyn SerialPort, tx: String) -> Result<String, Error> {
     // Format the command to the ISC's standards.
@@ -50,4 +52,23 @@ pub fn write_read(port: &mut dyn SerialPort, tx: String) -> Result<String, Error
     }
 
     Ok(buffer)
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ReadWriteError {
+    /// The command the error is associated with.
+    pub command: Command,
+    pub error_kind: ErrorKind,
+    /// A description of the error.
+    pub description: String,
+}
+
+impl ReadWriteError {
+    pub fn new(command: Command, error_kind: ErrorKind, description: String) -> Self {
+        Self {
+            command,
+            error_kind,
+            description,
+        }
+    }
 }

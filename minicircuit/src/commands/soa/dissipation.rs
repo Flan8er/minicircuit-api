@@ -77,6 +77,7 @@ impl Default for SetSOADissipationConfig {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetSOADissipationConfigResponse {
     /// The dissipation value in W at which the `HighDissipation` reaction is performed by the SOA.
     pub high_dissipation: Watt,

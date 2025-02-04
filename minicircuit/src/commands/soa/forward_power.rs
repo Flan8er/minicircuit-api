@@ -81,6 +81,7 @@ impl Default for SetSOAForwardPowerLimits {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GetSOAForwardPowerLimitsResponse {
     /// The forward power value in dBm at which the `HighForwardPower` reaction is performed by the SOA.
     pub high_forward_power: Watt,

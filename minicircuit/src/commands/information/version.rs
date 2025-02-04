@@ -4,7 +4,7 @@ use crate::{drivers::data_types::types::Channel, errors::MWError};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// The current version of the firmware.
-pub struct VersionResponse {
+pub struct GetVersionResponse {
     // Firmware developer identifier.
     pub manufacturer_id: String,
     /// The version's major revision number.
@@ -21,7 +21,7 @@ pub struct VersionResponse {
     pub time_stamp: String,
 }
 
-impl TryFrom<String> for VersionResponse {
+impl TryFrom<String> for GetVersionResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
@@ -47,7 +47,7 @@ impl TryFrom<String> for VersionResponse {
     }
 }
 
-fn parse_with_hotfix(parts: Vec<&str>) -> VersionResponse {
+fn parse_with_hotfix(parts: Vec<&str>) -> GetVersionResponse {
     let manufacturer_id = parts[2].trim().to_string();
     let major_version = parts[3].trim().to_string();
     let minor_version = parts[4].trim().to_string();
@@ -56,7 +56,7 @@ fn parse_with_hotfix(parts: Vec<&str>) -> VersionResponse {
     let date_stamp = parts[7].trim().to_string();
     let time_stamp = parts[8].trim().to_string();
 
-    VersionResponse {
+    GetVersionResponse {
         manufacturer_id,
         major_version,
         minor_version,
@@ -66,7 +66,7 @@ fn parse_with_hotfix(parts: Vec<&str>) -> VersionResponse {
         time_stamp,
     }
 }
-fn parse_without_hotfix(parts: Vec<&str>) -> VersionResponse {
+fn parse_without_hotfix(parts: Vec<&str>) -> GetVersionResponse {
     let manufacturer_id = parts[2].trim().to_string();
     let major_version = parts[3].trim().to_string();
     let minor_version = parts[4].trim().to_string();
@@ -74,7 +74,7 @@ fn parse_without_hotfix(parts: Vec<&str>) -> VersionResponse {
     let date_stamp = parts[6].trim().to_string();
     let time_stamp = parts[7].trim().to_string();
 
-    VersionResponse {
+    GetVersionResponse {
         manufacturer_id,
         major_version,
         minor_version,
