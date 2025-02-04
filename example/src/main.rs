@@ -89,6 +89,6 @@ async fn main() {
     let _set_frequency_response: Response = controller.send(set_frequency);
     let _get_frequency_response: Response = controller.send(get_frequency);
 
-    // Parse the responses from the quque as a result of executing the commands.
+    // Parse the responses from the queue as a result of executing the commands.
     handle.await.unwrap();
 }
