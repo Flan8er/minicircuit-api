@@ -2350,7 +2350,10 @@ impl MiniCircuitDriver {
     ///
     /// Ex. On update cycle, send any command that is still in the queue.
     pub fn handle_queue(&mut self) {
-        let mut queue: Vec<Message> = self.queue.iter().collect();
+        let mut queue = Vec::new();
+        while let Ok(msg) = self.queue.try_recv() {
+            queue.push(msg);
+        }
 
         // No commands to process.
         if queue.len() == 0 {
