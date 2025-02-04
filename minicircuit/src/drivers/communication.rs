@@ -27,7 +27,7 @@ pub fn write_read(port: &mut dyn SerialPort, tx: String) -> Result<String, Error
     let timeout = Duration::from_millis(500);
     let start_time = Instant::now();
 
-    while buffer != String::new() {
+    while !buffer.contains("\r\n") {
         if start_time.elapsed() >= timeout {
             return Err(Error::new(
                 ErrorKind::Io(std::io::ErrorKind::TimedOut),

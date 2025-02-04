@@ -241,6 +241,7 @@ impl MiniCircuitDriver {
                 // Collect the resulting response of sending the command.
                 let command_response: Response = match write_read(&mut *self.port, command) {
                     Ok(sg_response) => {
+                        println!("{}", sg_response);
                         let parse_result: Result<GetFrequencyResponse, _> = sg_response.try_into();
 
                         match parse_result {
@@ -272,6 +273,7 @@ impl MiniCircuitDriver {
                 // Collect the resulting response of sending the command.
                 let command_response: Response = match write_read(&mut *self.port, command) {
                     Ok(sg_response) => {
+                        println!("{}", sg_response);
                         let parse_result: Result<SetFrequencyResponse, _> = sg_response.try_into();
 
                         match parse_result {
