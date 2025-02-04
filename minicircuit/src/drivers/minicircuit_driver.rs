@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serialport::{Error, SerialPort};
+use serialport::SerialPort;
 
 use crate::commands::{basic::adc::GetPAPowerADCResponse, command::Command, response::Response};
 

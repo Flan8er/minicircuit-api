@@ -17,7 +17,7 @@ use minicircuit::{
 
 #[tokio::main]
 async fn main() {
-    // A channel that will be used by the driver to deliver messages back.
+    // A channel that will be used by the driver to deliver responses from the commands back.
     let (channel, mut channel_rx) = broadcast::channel::<Response>(100);
     // Spawn a task to continuously receive message responses.
     let handle = spawn(async move {
@@ -49,7 +49,7 @@ async fn main() {
         }
     });
 
-    // A queue that can be used for sending messages.
+    // A queue that can be used for sending commands to the driver.
     let (queue, queue_rx) = mpsc::channel::<Message>();
 
     // Connect to the signal generator that has the desired properties.
