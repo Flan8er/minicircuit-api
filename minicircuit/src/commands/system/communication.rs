@@ -81,11 +81,3 @@ impl Into<u8> for Interface {
         };
     }
 }
-// impl From<u8> for Interface {
-//     fn from(value: u8) -> Self {
-//         return match value {
-//             1 => Self::Uart,
-//             _ => Self::Usb,
-//         };
-//     }
-// }

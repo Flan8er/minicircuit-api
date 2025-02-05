@@ -29,7 +29,10 @@ impl TryFrom<String> for GetISCTempResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let temperature: Temperature = match parts[2].trim().parse::<u8>() {
+        let temperature: Temperature = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => Temperature::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);

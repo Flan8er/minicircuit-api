@@ -32,7 +32,10 @@ impl TryFrom<String> for PerformSweepWattResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let measurement_frequency: Frequency = match parts[2].trim().parse::<u16>() {
+        let measurement_frequency: Frequency = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u16>()
+        {
             Ok(value) => Frequency::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
@@ -164,7 +167,10 @@ impl TryFrom<String> for PerformSweepDBMResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let measurement_frequency: Frequency = match parts[2].trim().parse::<u16>() {
+        let measurement_frequency: Frequency = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u16>()
+        {
             Ok(value) => Frequency::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);

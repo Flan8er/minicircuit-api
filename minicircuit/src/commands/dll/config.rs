@@ -144,25 +144,37 @@ impl TryFrom<String> for GetDLLConfigResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let lower_frequency: Frequency = match parts[2].trim().parse::<u16>() {
+        let lower_frequency: Frequency = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u16>()
+        {
             Ok(value) => Frequency::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let upper_frequency: Frequency = match parts[3].trim().parse::<u16>() {
+        let upper_frequency: Frequency = match parts[3].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u16>()
+        {
             Ok(value) => Frequency::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let start_frequency: Frequency = match parts[4].trim().parse::<u16>() {
+        let start_frequency: Frequency = match parts[4].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u16>()
+        {
             Ok(value) => Frequency::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let step_frequency: Frequency = match parts[5].trim().parse::<u16>() {
+        let step_frequency: Frequency = match parts[5].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u16>()
+        {
             Ok(value) => Frequency::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
@@ -174,7 +186,10 @@ impl TryFrom<String> for GetDLLConfigResponse {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let main_delay: MainDelay = match parts[7].trim().parse::<u16>() {
+        let main_delay: MainDelay = match parts[7].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u16>()
+        {
             Ok(value) => MainDelay::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);

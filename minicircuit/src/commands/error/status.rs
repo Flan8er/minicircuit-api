@@ -99,7 +99,10 @@ impl TryFrom<String> for GetStatusResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let hex_status_code = match parts[3].trim().parse::<u64>() {
+        let hex_status_code = match parts[3].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u64>()
+        {
             Ok(value) => value,
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);

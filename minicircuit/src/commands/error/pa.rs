@@ -53,7 +53,10 @@ impl TryFrom<String> for GetPAErrorsResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let pa_error_code: u8 = match parts[2].trim().parse::<u8>() {
+        let pa_error_code: u8 = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => value,
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);

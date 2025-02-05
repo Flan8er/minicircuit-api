@@ -126,7 +126,10 @@ impl TryFrom<String> for GetSOAConfigResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let temp_enabled: bool = match parts[2].trim().parse::<u8>() {
+        let temp_enabled: bool = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => match value {
                 1 => true,
                 _ => false,
@@ -135,7 +138,10 @@ impl TryFrom<String> for GetSOAConfigResponse {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let reflection_enabled: bool = match parts[4].trim().parse::<u8>() {
+        let reflection_enabled: bool = match parts[4].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => match value {
                 1 => true,
                 _ => false,
@@ -144,7 +150,10 @@ impl TryFrom<String> for GetSOAConfigResponse {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let external_watchdog_enabled: bool = match parts[5].trim().parse::<u8>() {
+        let external_watchdog_enabled: bool = match parts[5].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => match value {
                 1 => true,
                 _ => false,
@@ -153,7 +162,10 @@ impl TryFrom<String> for GetSOAConfigResponse {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let dissipation_enabled: bool = match parts[6].trim().parse::<u8>() {
+        let dissipation_enabled: bool = match parts[6].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => match value {
                 1 => true,
                 _ => false,
@@ -162,7 +174,10 @@ impl TryFrom<String> for GetSOAConfigResponse {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let pa_status_enabled: bool = match parts[7].trim().parse::<u8>() {
+        let pa_status_enabled: bool = match parts[7].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => match value {
                 1 => true,
                 _ => false,
@@ -171,7 +186,10 @@ impl TryFrom<String> for GetSOAConfigResponse {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let iq_modulator_enabled: bool = match parts[8].trim().parse::<u8>() {
+        let iq_modulator_enabled: bool = match parts[8].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => match value {
                 1 => true,
                 _ => false,
@@ -180,7 +198,10 @@ impl TryFrom<String> for GetSOAConfigResponse {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let current_enabled: bool = match parts[9].trim().parse::<u8>() {
+        let current_enabled: bool = match parts[9].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => match value {
                 1 => true,
                 _ => false,

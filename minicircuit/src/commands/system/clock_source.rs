@@ -87,7 +87,10 @@ impl TryFrom<String> for GetClockSourceResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let clock_source: ClockSource = match parts[2].trim().parse::<u8>() {
+        let clock_source: ClockSource = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => ClockSource::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
@@ -187,14 +190,3 @@ impl Into<u8> for ClockSource {
         }
     }
 }
-// impl Display for ClockSource {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-//         let source: u8 = self.to_owned().into();
-//         write!(f, "{}", source)
-//     }
-// }
-// impl Default for ClockSource {
-//     fn default() -> Self {
-//         Self::Standalone
-//     }
-// }

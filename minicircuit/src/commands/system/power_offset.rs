@@ -95,7 +95,10 @@ impl TryFrom<String> for GetPowerOffsetResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let offset = match parts[2].trim().parse::<u8>() {
+        let offset = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => value,
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);

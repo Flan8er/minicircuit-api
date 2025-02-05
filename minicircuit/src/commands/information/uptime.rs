@@ -31,7 +31,10 @@ impl TryFrom<String> for GetUptimeResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let uptime = match parts[2].trim().parse::<u64>() {
+        let uptime = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u64>()
+        {
             Ok(value) => value,
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);

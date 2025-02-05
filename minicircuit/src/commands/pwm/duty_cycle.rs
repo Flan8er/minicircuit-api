@@ -31,13 +31,19 @@ impl TryFrom<String> for GetPWMDutyCycleResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let frequency: Frequency = match parts[2].trim().parse::<u16>() {
+        let frequency: Frequency = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u16>()
+        {
             Ok(value) => Frequency::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let duty_cycle: Percentage = match parts[10].trim().parse::<u8>() {
+        let duty_cycle: Percentage = match parts[10].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => Percentage::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);

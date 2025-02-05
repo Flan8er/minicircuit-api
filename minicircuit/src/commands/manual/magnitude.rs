@@ -86,7 +86,10 @@ impl TryFrom<String> for GetMagnitudeResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let magnitude: Percentage = match parts[2].trim().parse::<u8>() {
+        let magnitude: Percentage = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => Percentage::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);

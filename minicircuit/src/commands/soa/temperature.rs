@@ -107,13 +107,19 @@ impl TryFrom<String> for GetSOATempConfigResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let high_temp: Temperature = match parts[2].trim().parse::<u8>() {
+        let high_temp: Temperature = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => Temperature::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let shutdown_temp: Temperature = match parts[3].trim().parse::<u8>() {
+        let shutdown_temp: Temperature = match parts[3].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => Temperature::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);

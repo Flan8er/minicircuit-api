@@ -105,7 +105,10 @@ impl TryFrom<String> for GetAutoGainStateResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let enabled: bool = match parts[2].trim().parse::<u8>() {
+        let enabled: bool = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => match value {
                 1 => true,
                 _ => false,

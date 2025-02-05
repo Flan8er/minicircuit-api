@@ -86,7 +86,10 @@ impl TryFrom<String> for GetPhaseResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let phase: Phase = match parts[2].trim().parse::<u16>() {
+        let phase: Phase = match parts[2].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u16>()
+        {
             Ok(value) => Phase::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);

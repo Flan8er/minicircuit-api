@@ -83,7 +83,10 @@ impl TryFrom<String> for GetChannelIDResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let channel: Channel = match parts[1].trim().parse::<u8>() {
+        let channel: Channel = match parts[1].split('.').collect::<Vec<&str>>()[0]
+            .trim()
+            .parse::<u8>()
+        {
             Ok(value) => Channel::new(value),
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
