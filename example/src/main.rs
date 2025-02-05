@@ -37,7 +37,7 @@ async fn main() {
                 }
                 Response::ReadWriteError(read_write_error) => {
                     println!(
-                        "An error occurreed sending a command to the signal generator. {}",
+                        "An error occurred sending a command to the signal generator. {}",
                         read_write_error.description
                     )
                 }

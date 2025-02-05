@@ -27,7 +27,7 @@ pub fn write_read(port: &mut dyn SerialPort, tx: String) -> Result<String, Error
     let timeout = Duration::from_millis(500);
     let start_time = Instant::now();
 
-    while !buffer.contains("\r") {
+    while !buffer.contains('\n') || !buffer.contains('\r') {
         if start_time.elapsed() >= timeout {
             return Err(Error::new(
                 ErrorKind::Io(std::io::ErrorKind::TimedOut),
@@ -41,12 +41,14 @@ pub fn write_read(port: &mut dyn SerialPort, tx: String) -> Result<String, Error
                     buffer.push_str(&String::from_utf8_lossy(&temp_buffer[..bytes_read]));
                 }
             }
-            Err(ref e) if e.kind() == std::io::ErrorKind::TimedOut => continue,
+            Err(ref e) if e.kind() == std::io::ErrorKind::TimedOut => {
+                continue;
+            }
             Err(e) => {
                 return Err(Error::new(
                     ErrorKind::Io(e.kind()),
                     format!("Failed to read from the port: {:?}", e),
-                ))
+                ));
             }
         }
     }
