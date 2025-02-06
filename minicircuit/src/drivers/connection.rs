@@ -35,8 +35,20 @@ pub fn connect_to_signal_generator(
     .timeout(target_properties.connection_timeout)
     .open()
     {
-        Ok(port) => Some(port),
-        Err(_) => None,
+        Ok(port) => {
+            println!(
+                "Port '{}' has been opened",
+                first_signal_generator.port_name
+            );
+            Some(port)
+        }
+        Err(e) => {
+            eprintln!(
+                "Failed to open port \"{}\". Error: {}",
+                first_signal_generator.port_name, e
+            );
+            None
+        }
     }
 }
 
