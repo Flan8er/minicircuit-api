@@ -1,5 +1,4 @@
 use serialport::{Error, ErrorKind, SerialPort};
-use std::time::{Duration, Instant};
 
 use crate::commands::command::Command;
 
@@ -15,35 +14,19 @@ pub fn write_read(port: &mut dyn SerialPort, tx: String) -> Result<String, Error
         ));
     }
 
-    if let Err(e) = port.flush() {
-        return Err(Error::new(
-            ErrorKind::Io(e.kind()),
-            format!("Failed to flush the port: {:?}", e),
-        ));
-    }
-
     let mut buffer = String::new();
-    let mut temp_buffer = [0; 256];
-    let timeout = Duration::from_millis(500);
-    let start_time = Instant::now();
+    let mut serial_buf: Vec<u8> = vec![0; 1000];
 
     while !buffer.contains("\n") && !buffer.contains("\r") {
-        if start_time.elapsed() >= timeout {
-            return Err(Error::new(
-                ErrorKind::Io(std::io::ErrorKind::TimedOut),
-                "Timeout while waiting for response.",
-            ));
-        }
-
-        match port.read(&mut temp_buffer) {
-            Ok(bytes_read) => {
-                println!("reading");
-                if bytes_read > 0 {
-                    buffer.push_str(&String::from_utf8_lossy(&temp_buffer[..bytes_read]));
-                }
+        match port.read(serial_buf.as_mut_slice()) {
+            Ok(t) => {
+                buffer.push_str(&String::from_utf8_lossy(&serial_buf[..t]));
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::TimedOut => {
-                continue;
+                return Err(Error::new(
+                    ErrorKind::Io(std::io::ErrorKind::TimedOut),
+                    "Timeout while waiting for response.",
+                ));
             }
             Err(e) => {
                 return Err(Error::new(

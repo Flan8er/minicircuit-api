@@ -24,10 +24,7 @@ async fn main() {
         while let Ok(response) = channel_rx.recv().await {
             match response {
                 Response::GetFrequencyResponse(get_frequency_response) => {
-                    println!(
-                        "Frequency is set to: {}\n",
-                        get_frequency_response.frequency
-                    );
+                    println!("Frequency is set to: {}", get_frequency_response.frequency);
                 }
                 Response::SetFrequencyResponse(set_frequency_response) => {
                     match set_frequency_response.result {

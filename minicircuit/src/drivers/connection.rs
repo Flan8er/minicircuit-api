@@ -21,7 +21,7 @@ pub fn connect_to_signal_generator(
     }
 
     // Connect to the first port that matches the requirements.
-    let first_signal_generator = &signal_generators[0];
+    let first_signal_generator = &signal_generators[2];
 
     // Open a serial connection with the detected port at the requested settings.
     match serialport::new(
@@ -33,14 +33,14 @@ pub fn connect_to_signal_generator(
     .flow_control(target_properties.flow_control)
     .stop_bits(target_properties.stop_bits)
     .timeout(target_properties.connection_timeout)
-    .open()
+    .open_native()
     {
         Ok(port) => {
             println!(
                 "Port '{}' has been opened",
                 first_signal_generator.port_name
             );
-            Some(port)
+            Some(Box::new(port))
         }
         Err(e) => {
             eprintln!(
