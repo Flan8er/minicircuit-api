@@ -8,19 +8,19 @@ pub fn write_read(port: &mut dyn SerialPort, tx: String) -> Result<String, Error
     // Format the command to the ISC's standards.
     let command = format!("{}\r\n", tx);
 
-    // if let Err(e) = port.write_all(command.as_bytes()) {
-    //     return Err(Error::new(
-    //         ErrorKind::Io(e.kind()),
-    //         format!("Failed to write to the port: {:?}", e),
-    //     ));
-    // }
+    if let Err(e) = port.write_all(command.as_bytes()) {
+        return Err(Error::new(
+            ErrorKind::Io(e.kind()),
+            format!("Failed to write to the port: {:?}", e),
+        ));
+    }
 
-    // if let Err(e) = port.flush() {
-    //     return Err(Error::new(
-    //         ErrorKind::Io(e.kind()),
-    //         format!("Failed to flush the port: {:?}", e),
-    //     ));
-    // }
+    if let Err(e) = port.flush() {
+        return Err(Error::new(
+            ErrorKind::Io(e.kind()),
+            format!("Failed to flush the port: {:?}", e),
+        ));
+    }
 
     let mut buffer = String::new();
     let mut temp_buffer = [0; 256];
