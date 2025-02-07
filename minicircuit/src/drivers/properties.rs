@@ -6,6 +6,7 @@ use super::data_types::types::BaudRate;
 /// The properties that are used for automatically detecting and
 /// connecting to the signal generator and rules for the connection.
 pub struct TargetProperties {
+    pub port: Option<String>,
     /// The target vendor ID for connecting.
     ///
     /// When automatically connecting to signal generators
@@ -34,6 +35,7 @@ pub struct TargetProperties {
 
 impl TargetProperties {
     pub fn new(
+        port: Option<String>,
         vendor_id: VendorId,
         product_id: ProductId,
         baud_rate: BaudRate,
@@ -44,6 +46,7 @@ impl TargetProperties {
         connection_timeout: std::time::Duration,
     ) -> Self {
         return Self {
+            port,
             vendor_id,
             product_id,
             baud_rate,
@@ -59,6 +62,7 @@ impl TargetProperties {
 impl Default for TargetProperties {
     fn default() -> Self {
         return Self {
+            port: Some(String::from("/dev/tty.usbserial-FTBXKGR7")),
             vendor_id: VendorId::default(),
             product_id: ProductId::default(),
             baud_rate: BaudRate::default(),
@@ -66,7 +70,7 @@ impl Default for TargetProperties {
             parity: serialport::Parity::None,
             flow_control: serialport::FlowControl::None,
             stop_bits: serialport::StopBits::One,
-            connection_timeout: std::time::Duration::from_secs(10),
+            connection_timeout: std::time::Duration::from_secs(1),
         };
     }
 }

@@ -9,7 +9,7 @@ use minicircuit::{
         response::Response,
     },
     drivers::{
-        connection::connect_to_signal_generator,
+        connection::{connect_to_signal_generator, open_port},
         minicircuit_driver::{Message, MiniCircuitDriver, Priority},
         properties::TargetProperties,
     },
@@ -51,6 +51,18 @@ async fn main() {
 
     // Connect to the signal generator that has the desired properties.
     let target_properties = TargetProperties::default();
+    // The port can either be opened by specifying the physical port using the port property in TargetProperties.
+    if false {
+        let _port = match open_port(target_properties.clone()) {
+            Some(port) => port,
+            None => {
+                eprintln!("Exiting program: No valid connection.");
+                return;
+            }
+        };
+    }
+    // Or the port can be automatically detected and opened using the desired product and manufacturer IDs in TargetProperties.
+    // Use this method if the port location isn't guaranteed.
     let port = match connect_to_signal_generator(target_properties) {
         Some(port) => port,
         None => {

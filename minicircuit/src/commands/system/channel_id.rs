@@ -43,7 +43,7 @@ impl Into<String> for SetChannelID {
 
 impl SetChannelID {
     /// Returns a handler to call the command.
-    pub fn new(self, channel: Channel, new_channel: Channel) -> Self {
+    pub fn new(channel: Channel, new_channel: Channel) -> Self {
         Self {
             channel,
             new_channel,

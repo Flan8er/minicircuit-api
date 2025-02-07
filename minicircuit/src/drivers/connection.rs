@@ -2,7 +2,39 @@ use serialport::{available_ports, Error, SerialPort, SerialPortInfo};
 
 use super::properties::{ProductId, TargetProperties, VendorId};
 
-/// This function auto-detects and connects to the port that meets the required properties passed in the inputs.
+/// Used for connecting directly to the supplied port in the target properties.
+///
+/// Use this method if the port location is guaranteed.
+///
+/// Opens the port using the remaining target properties.
+pub fn open_port(target_properties: TargetProperties) -> Option<Box<dyn SerialPort>> {
+    let Some(desired_port) = target_properties.port else {
+        eprintln!("Port required for direct connection.");
+        return None;
+    };
+
+    let desired_baud_rate: u32 = target_properties.baud_rate.into();
+
+    match serialport::new(&desired_port, desired_baud_rate)
+        .data_bits(target_properties.data_bits)
+        .parity(target_properties.parity)
+        .flow_control(target_properties.flow_control)
+        .stop_bits(target_properties.stop_bits)
+        .timeout(target_properties.connection_timeout)
+        .open()
+    {
+        Ok(port) => Some(port),
+        Err(e) => {
+            eprintln!("Failed to open port \"{}\". Error: {}", desired_port, e);
+            None
+        }
+    }
+}
+
+/// This function auto-detects and connects to the port that meets the required product and manufacturer IDs  passed in the inputs.
+/// Does not use the supplied port as it aims to be as flexible as possible in the connection.
+///
+/// Use this method if the port location isn't guaranteed.
 ///
 /// Multiple ports could meet the same requirements; in this case the first port is chosen.
 pub fn connect_to_signal_generator(
@@ -21,7 +53,7 @@ pub fn connect_to_signal_generator(
     }
 
     // Connect to the first port that matches the requirements.
-    let first_signal_generator = &signal_generators[2];
+    let first_signal_generator = &signal_generators[0];
 
     // Open a serial connection with the detected port at the requested settings.
     match serialport::new(
@@ -33,15 +65,9 @@ pub fn connect_to_signal_generator(
     .flow_control(target_properties.flow_control)
     .stop_bits(target_properties.stop_bits)
     .timeout(target_properties.connection_timeout)
-    .open_native()
+    .open()
     {
-        Ok(port) => {
-            println!(
-                "Port '{}' has been opened",
-                first_signal_generator.port_name
-            );
-            Some(Box::new(port))
-        }
+        Ok(port) => Some(port),
         Err(e) => {
             eprintln!(
                 "Failed to open port \"{}\". Error: {}",
@@ -75,8 +101,15 @@ pub fn autodetect_sg_port(
                 let vendor_id: u16 = vendor_id.clone().into();
                 let product_id: u16 = product_id.clone().into();
 
+                let Some(product) = usb_info.clone().product else {
+                    return false;
+                };
+
                 // The filter requirement for returning the port is that the product and vendor ids match the requested ids.
-                usb_info.vid == vendor_id && usb_info.pid == product_id
+                usb_info.vid == vendor_id
+                    && usb_info.pid == product_id
+                    && port.port_name.contains("tty")
+                    && !product.contains("UART")
             } else {
                 false
             }

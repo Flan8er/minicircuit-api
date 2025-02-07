@@ -85,7 +85,7 @@ impl Into<String> for SetSOAConfig {
 
 impl SetSOAConfig {
     /// Returns a handler to call the command using the given inputs.
-    pub fn new(self, channel: Channel, soa_type: SOAType, enabled: bool) -> Self {
+    pub fn new(channel: Channel, soa_type: SOAType, enabled: bool) -> Self {
         Self {
             channel,
             soa_type,
@@ -239,7 +239,7 @@ impl Into<String> for GetSOAConfig {
 impl GetSOAConfig {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }

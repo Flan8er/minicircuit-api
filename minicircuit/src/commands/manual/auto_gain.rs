@@ -60,7 +60,7 @@ impl Into<String> for SetAutoGainState {
 
 impl SetAutoGainState {
     /// Returns a handler to call the command with specified inputs.
-    pub fn new(self, channel: Channel, enabled: bool) -> Self {
+    pub fn new(channel: Channel, enabled: bool) -> Self {
         Self { channel, enabled }
     }
 }
