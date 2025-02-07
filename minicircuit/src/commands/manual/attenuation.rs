@@ -63,7 +63,7 @@ impl Into<String> for GetAttenuation {
 impl GetAttenuation {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }
@@ -125,7 +125,7 @@ impl Into<String> for SetAttenuation {
 
 impl SetAttenuation {
     /// Returns a handler to call the command with the provided inputs.
-    pub fn new(self, channel: Channel, attenuation: Attenuation) -> Self {
+    pub fn new(channel: Channel, attenuation: Attenuation) -> Self {
         Self {
             channel,
             attenuation,

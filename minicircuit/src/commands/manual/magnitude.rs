@@ -47,7 +47,7 @@ impl Into<String> for SetMagnitude {
 
 impl SetMagnitude {
     /// Magnitude in percent (%) in range from 0-100
-    pub fn new(self, channel: Channel, magnitude: Percentage) -> Self {
+    pub fn new(channel: Channel, magnitude: Percentage) -> Self {
         Self { channel, magnitude }
     }
 }
@@ -116,7 +116,7 @@ impl Into<String> for GetMagnitude {
 impl GetMagnitude {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }

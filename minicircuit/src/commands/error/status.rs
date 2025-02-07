@@ -139,7 +139,7 @@ impl Into<String> for GetStatus {
 impl GetStatus {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }

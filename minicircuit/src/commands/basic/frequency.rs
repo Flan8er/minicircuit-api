@@ -41,7 +41,7 @@ impl Into<String> for SetFrequency {
 
 impl SetFrequency {
     /// Returns a handler to call the command with specified inputs.
-    pub fn new(self, channel: Channel, frequency: Frequency) -> Self {
+    pub fn new(channel: Channel, frequency: Frequency) -> Self {
         Self { channel, frequency }
     }
 }
@@ -110,7 +110,7 @@ impl Into<String> for GetFrequency {
 impl GetFrequency {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }

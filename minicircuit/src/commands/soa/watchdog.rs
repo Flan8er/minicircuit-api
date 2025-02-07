@@ -67,7 +67,7 @@ impl Into<String> for SetSOAWatchdogConfig {
 
 impl SetSOAWatchdogConfig {
     /// Returns a handler to call the command using the given inputs.
-    pub fn new(self, channel: Channel, enabled: bool) -> Self {
+    pub fn new(channel: Channel, enabled: bool) -> Self {
         Self { channel, enabled }
     }
 }

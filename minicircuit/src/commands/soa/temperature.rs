@@ -57,7 +57,7 @@ impl Into<String> for SetSOATempConfig {
 
 impl SetSOATempConfig {
     /// Returns a handler to call the command using the given inputs.
-    pub fn new(self, channel: Channel, high_temp: Temperature, shutdown_temp: Temperature) -> Self {
+    pub fn new(channel: Channel, high_temp: Temperature, shutdown_temp: Temperature) -> Self {
         Self {
             channel,
             high_temp,
@@ -149,7 +149,7 @@ impl Into<String> for GetSOATempConfig {
 impl GetSOATempConfig {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }

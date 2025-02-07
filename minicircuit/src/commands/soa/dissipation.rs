@@ -55,7 +55,7 @@ impl Into<String> for SetSOADissipationConfig {
 
 impl SetSOADissipationConfig {
     /// Returns a handler to call the command using the given inputs.
-    pub fn new(self, channel: Channel, high_dissipation: Watt, shutdown_dissipation: Watt) -> Self {
+    pub fn new(channel: Channel, high_dissipation: Watt, shutdown_dissipation: Watt) -> Self {
         Self {
             channel,
             high_dissipation,
@@ -148,7 +148,7 @@ impl Into<String> for GetSOADissipationConfig {
 impl GetSOADissipationConfig {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }

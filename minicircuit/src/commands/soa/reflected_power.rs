@@ -56,7 +56,7 @@ impl Into<String> for SetSOAPowerConfig {
 
 impl SetSOAPowerConfig {
     /// Returns a handler to call the command using the given inputs.
-    pub fn new(self, channel: Channel, high_reflection: Dbm, shutdown_reflection: Dbm) -> Self {
+    pub fn new(channel: Channel, high_reflection: Dbm, shutdown_reflection: Dbm) -> Self {
         Self {
             channel,
             high_reflection,
@@ -142,7 +142,7 @@ impl Into<String> for GetSOAPowerConfig {
 impl GetSOAPowerConfig {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }

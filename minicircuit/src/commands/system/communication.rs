@@ -46,7 +46,7 @@ impl Into<String> for SetCommunicationInterface {
 
 impl SetCommunicationInterface {
     /// Returns a handler to call the command with specified inputs.
-    pub fn new(self, channel: Channel, interface: Interface) -> Self {
+    pub fn new(channel: Channel, interface: Interface) -> Self {
         Self { channel, interface }
     }
 }

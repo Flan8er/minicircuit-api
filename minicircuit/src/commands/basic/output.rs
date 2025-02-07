@@ -48,7 +48,7 @@ impl Into<String> for SetRFOutput {
 
 impl SetRFOutput {
     /// Returns a handler to call the command with specified inputs.
-    pub fn new(self, channel: Channel, enabled: bool) -> Self {
+    pub fn new(channel: Channel, enabled: bool) -> Self {
         Self { channel, enabled }
     }
 }
@@ -129,7 +129,7 @@ impl Into<String> for GetRFOutput {
 impl GetRFOutput {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }

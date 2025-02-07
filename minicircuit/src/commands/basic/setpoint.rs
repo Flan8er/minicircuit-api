@@ -41,7 +41,7 @@ impl Into<String> for SetPAPowerSetpointWatt {
 
 impl SetPAPowerSetpointWatt {
     /// Returns a handler to call the command.
-    pub fn new(self, channel: Channel, power: Watt) -> Self {
+    pub fn new(channel: Channel, power: Watt) -> Self {
         Self { channel, power }
     }
 }
@@ -107,7 +107,7 @@ impl Into<String> for GetPAPowerSetpointWatt {
 impl GetPAPowerSetpointWatt {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }
@@ -157,7 +157,7 @@ impl Into<String> for SetPAPowerSetpointDBM {
 
 impl SetPAPowerSetpointDBM {
     /// Returns a handler to call the command.
-    pub fn new(self, channel: Channel, power: Dbm) -> Self {
+    pub fn new(channel: Channel, power: Dbm) -> Self {
         Self { channel, power }
     }
 }
@@ -223,7 +223,7 @@ impl Into<String> for GetPAPowerSetpointDBM {
 impl GetPAPowerSetpointDBM {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }

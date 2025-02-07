@@ -108,7 +108,6 @@ impl PerformSweepWatt {
     ///
     /// The output power at which the sweep is performed in watts.
     pub fn new(
-        self,
         channel: Channel,
         start_frequency: Frequency,
         stop_frequency: Frequency,
@@ -243,7 +242,6 @@ impl PerformSweepDBM {
     ///
     /// The output power at which the sweep is performed in dBm.
     pub fn new(
-        self,
         channel: Channel,
         start_frequency: Frequency,
         stop_frequency: Frequency,

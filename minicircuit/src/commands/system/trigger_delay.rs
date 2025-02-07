@@ -42,7 +42,7 @@ impl Into<String> for SetZHLTriggerDelay {
 
 impl SetZHLTriggerDelay {
     /// Returns a handler to call the command with specified inputs.
-    pub fn new(self, channel: Channel, delay: u16) -> Self {
+    pub fn new(channel: Channel, delay: u16) -> Self {
         Self { channel, delay }
     }
 }

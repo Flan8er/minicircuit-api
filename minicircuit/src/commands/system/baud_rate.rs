@@ -35,7 +35,7 @@ impl Into<String> for SetUartBaudRate {
 
 impl SetUartBaudRate {
     /// Returns a handler to call the command with specified inputs.
-    pub fn new(self, channel: Channel, baud_rate: BaudRate) -> Self {
+    pub fn new(channel: Channel, baud_rate: BaudRate) -> Self {
         Self { channel, baud_rate }
     }
 }

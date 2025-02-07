@@ -73,7 +73,7 @@ impl Into<String> for GetPWMDutyCycle {
 impl GetPWMDutyCycle {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }
@@ -127,7 +127,7 @@ impl Into<String> for SetPWMDutyCycle {
 
 impl SetPWMDutyCycle {
     /// Returns a handler to call the command using the given inputs.
-    pub fn new(self, channel: Channel, duty_cycle: Percentage) -> Self {
+    pub fn new(channel: Channel, duty_cycle: Percentage) -> Self {
         Self {
             channel,
             duty_cycle,

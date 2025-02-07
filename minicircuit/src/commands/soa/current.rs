@@ -55,7 +55,7 @@ impl Into<String> for SetSOACurrentConfig {
 
 impl SetSOACurrentConfig {
     /// Returns a handler to call the command using the given inputs.
-    pub fn new(self, channel: Channel, high_current: Amperes, shutdown_current: Amperes) -> Self {
+    pub fn new(channel: Channel, high_current: Amperes, shutdown_current: Amperes) -> Self {
         Self {
             channel,
             high_current,
@@ -148,7 +148,7 @@ impl Into<String> for GetSOACurrentConfig {
 impl GetSOACurrentConfig {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }

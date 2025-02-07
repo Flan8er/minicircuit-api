@@ -60,7 +60,6 @@ impl Into<String> for SetDLLConfig {
 impl SetDLLConfig {
     /// Returns a handler to call the command using the given inputs.
     pub fn new(
-        self,
         channel: Channel,
         lower_frequency: Frequency,
         upper_frequency: Frequency,
@@ -221,7 +220,7 @@ impl Into<String> for GetDLLConfig {
 
 impl GetDLLConfig {
     /// Returns a handler to call the command using the given inputs.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }

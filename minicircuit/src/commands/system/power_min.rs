@@ -45,7 +45,7 @@ impl Into<String> for SetPowerMinDbm {
 
 impl SetPowerMinDbm {
     /// Returns a handler to call the command with specified inputs.
-    pub fn new(self, channel: Channel, min: Dbm) -> Self {
+    pub fn new(channel: Channel, min: Dbm) -> Self {
         Self { channel, min }
     }
 }
@@ -113,7 +113,7 @@ impl Into<String> for GetPowerMinDbm {
 impl GetPowerMinDbm {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }

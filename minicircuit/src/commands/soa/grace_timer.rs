@@ -43,7 +43,7 @@ impl Into<String> for SetSOAGraceTimer {
 
 impl SetSOAGraceTimer {
     /// Returns a handler to call the command using the given inputs.
-    pub fn new(self, channel: Channel, grace_period: u16) -> Self {
+    pub fn new(channel: Channel, grace_period: u16) -> Self {
         Self {
             channel,
             grace_period,

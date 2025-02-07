@@ -45,7 +45,7 @@ impl Into<String> for SetISCPowerOutput {
 
 impl SetISCPowerOutput {
     /// Returns a handler to call the command with specified inputs.
-    pub fn new(self, channel: Channel, power_dbm: Dbm) -> Self {
+    pub fn new(channel: Channel, power_dbm: Dbm) -> Self {
         Self { channel, power_dbm }
     }
 }
@@ -114,7 +114,7 @@ impl Into<String> for GetISCPowerOutput {
 impl GetISCPowerOutput {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }

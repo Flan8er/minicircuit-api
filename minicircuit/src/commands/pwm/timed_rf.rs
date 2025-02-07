@@ -38,7 +38,7 @@ impl Into<String> for SetTimedRFEnable {
 
 impl SetTimedRFEnable {
     /// Returns a handler to call the command using the given inputs.
-    pub fn new(self, channel: Channel, duration: u32) -> Self {
+    pub fn new(channel: Channel, duration: u32) -> Self {
         Self { channel, duration }
     }
 }

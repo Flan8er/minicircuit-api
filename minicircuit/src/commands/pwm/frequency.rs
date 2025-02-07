@@ -41,7 +41,7 @@ impl Into<String> for SetPWMFrequency {
 
 impl SetPWMFrequency {
     /// Returns a handler to call the command using the given inputs.
-    pub fn new(self, channel: Channel, frequency: Frequency) -> Self {
+    pub fn new(channel: Channel, frequency: Frequency) -> Self {
         Self { channel, frequency }
     }
 }

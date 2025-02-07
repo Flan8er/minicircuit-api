@@ -43,7 +43,7 @@ impl Into<String> for SetPowerMaxDbm {
 
 impl SetPowerMaxDbm {
     /// Returns a handler to call the command with specified inputs.
-    pub fn new(self, channel: Channel, max: Dbm) -> Self {
+    pub fn new(channel: Channel, max: Dbm) -> Self {
         Self { channel, max }
     }
 }
@@ -111,7 +111,7 @@ impl Into<String> for GetPowerMaxDbm {
 impl GetPowerMaxDbm {
     /// Returns a handler to call the command.
     /// Use ::default() if channel specifier isn't unique.
-    pub fn new(self, channel: Channel) -> Self {
+    pub fn new(channel: Channel) -> Self {
         Self { channel }
     }
 }
