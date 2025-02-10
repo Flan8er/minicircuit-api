@@ -12,8 +12,15 @@ impl TryFrom<String> for ClearErrorsResponse {
     type Error = MWError;
 
     fn try_from(response: String) -> Result<Self, Self::Error> {
-        if response.contains("ERR") {
-            let response_error: Self::Error = response.into();
+        if !response.contains("OK") {
+            // Parsing the error depends on the location of the substring "ERR"
+            // which in this command occurs twice: "$ERRC,1,OK"
+            //
+            // trimmed_response is just removing the first occurance to be able
+            // to parse any errors from executing this command.
+            let trimmed_response: String = response.replace("$ERRC", "");
+
+            let response_error: Self::Error = trimmed_response.into();
             return Err(response_error);
         }
 

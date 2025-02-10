@@ -139,7 +139,7 @@ impl TryFrom<String> for GetDLLConfigResponse {
         let parts: Vec<&str> = response.split(',').collect();
 
         // Ensure the input has the expected number of parts
-        if parts.len() != 5 {
+        if parts.len() != 8 {
             return Err(Self::Error::FailedParseResponse);
         }
 

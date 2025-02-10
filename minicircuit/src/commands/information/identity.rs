@@ -35,13 +35,17 @@ impl TryFrom<String> for GetIdentityResponse {
         let parts: Vec<&str> = response.split(',').collect();
 
         // Ensure the input has the expected number of parts
-        if parts.len() != 5 {
+        if parts.len() != 4 {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let manufacturer = parts[2].trim().to_string();
-        let isc_board = parts[3].trim().to_string();
-        let serial_number = parts[4].trim().to_string();
+        let manufacturer_board: Vec<&str> = parts[2].split_whitespace().collect();
+        if manufacturer_board.len() != 2 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+        let manufacturer = manufacturer_board[0].trim().to_string();
+        let isc_board = manufacturer_board[1].trim().to_string();
+        let serial_number = parts[3].trim().to_string();
 
         Ok(GetIdentityResponse {
             manufacturer,

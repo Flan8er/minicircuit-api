@@ -132,7 +132,7 @@ pub struct GetStatus {
 
 impl Into<String> for GetStatus {
     fn into(self) -> String {
-        format!("$ST,{},0", self.channel)
+        format!("$ST,{}", self.channel)
     }
 }
 

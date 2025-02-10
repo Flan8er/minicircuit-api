@@ -76,6 +76,9 @@ pub enum Command {
     SetPAPowerSetpointDBM(SetPAPowerSetpointDBM),
     SetPAPowerSetpointWatt(SetPAPowerSetpointWatt),
     GetPATemp(GetPATemp),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     GetPAVoltage(GetPAVoltage),
     GetDLLConfig(GetDLLConfig),
     SetDLLConfig(SetDLLConfig),
@@ -84,6 +87,9 @@ pub enum Command {
     PerformSweepDBM(PerformSweepDBM),
     PerformSweepWatt(PerformSweepWatt),
     ClearErrors(ClearErrors),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     GetPAErrors(GetPAErrors),
     GetStatus(GetStatus),
     GetIdentity(GetIdentity),
@@ -104,32 +110,77 @@ pub enum Command {
     SetTimedRFEnable(SetTimedRFEnable),
     GetSOAConfig(GetSOAConfig),
     SetSOAConfig(SetSOAConfig),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     GetSOACurrentConfig(GetSOACurrentConfig),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     SetSOACurrentConfig(SetSOACurrentConfig),
     GetSOADissipationConfig(GetSOADissipationConfig),
     SetSOADissipationConfig(SetSOADissipationConfig),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     GetSOAForwardPowerLimits(GetSOAForwardPowerLimits),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     SetSOAForwardPowerLimits(SetSOAForwardPowerLimits),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     SetSOAGraceTimer(SetSOAGraceTimer),
     GetSOAPowerConfig(GetSOAPowerConfig),
     SetSOAPowerConfig(SetSOAPowerConfig),
     GetSOATempConfig(GetSOATempConfig),
     SetSOATempConfig(SetSOATempConfig),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     GetSOAVoltageConfig(GetSOAVoltageConfig),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     SetSOAVoltageConfig(SetSOAVoltageConfig),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     SetSOAWatchdogConfig(SetSOAWatchdogConfig),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     SetUartBaudRate(SetUartBaudRate),
     GetChannelID(GetChannelID),
     SetChannelID(SetChannelID),
     GetClockSource(GetClockSource),
     SetClockSource(SetClockSource),
     SetCommunicationInterface(SetCommunicationInterface),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     GetPowerMaxDbm(GetPowerMaxDbm),
     SetPowerMaxDbm(SetPowerMaxDbm),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     GetPowerMinDbm(GetPowerMinDbm),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     SetPowerMinDbm(SetPowerMinDbm),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     GetPowerOffset(GetPowerOffset),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     SetPowerOffset(SetPowerOffset),
     ResetSystem(ResetSystem),
+    #[deprecated(
+        note = "This function isn't implemented for the ISC-2425-25+ controller. If you're not using this controller, you can ignore this warning."
+    )]
     SetZHLTriggerDelay(SetZHLTriggerDelay),
 }

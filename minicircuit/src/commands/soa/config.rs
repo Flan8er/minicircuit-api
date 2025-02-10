@@ -2,26 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::{drivers::data_types::types::Channel, errors::MWError};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-pub enum SOAType {
-    /// See `SetSOATempConfig`
-    Temperature,
-    /// See `SetSOAPowerConfig`
-    Reflection,
-    ExternalWatchdog,
-    /// See `SetSOADissipationConfig`
-    Dissipation,
-    /// See `$PSG`
-    PAStatus,
-    IQModulator,
-    /// See `SetSOACurrentConfig`
-    Current,
-    /// See `SetSOAVoltageConfig`
-    Voltage,
-    /// See `SetSOAForwardPowerLimits`
-    ForwardPower,
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SetSOAConfigResponse {
     /// The result of the command (Ok/Err).
@@ -56,40 +36,75 @@ impl TryFrom<String> for SetSOAConfigResponse {
 pub struct SetSOAConfig {
     /// Channel identification number.
     pub channel: Channel,
-    pub soa_type: SOAType,
-    pub enabled: bool,
+    /// Enable state of the temperature protection system.
+    pub temp_enabled: bool,
+    /// Enable state of the RF power reflection protection system.
+    pub reflection_enabled: bool,
+    /// Enable state of the board status polling protection system.
+    pub external_watchdog_enabled: bool,
+    /// Enable state of the dissipation protection, i.e., a maximum amount of dissipated
+    /// power inside the amplifier can be set. The dissipated power is the sum of the reflected
+    /// RF power and the dissipation due to the RF generation process.
+    pub dissipation_enabled: bool,
 }
 
 impl Into<String> for SetSOAConfig {
     fn into(self) -> String {
-        let soa_type: u8 = match self.soa_type {
-            SOAType::Temperature => 0,
-            SOAType::Reflection => 2,
-            SOAType::ExternalWatchdog => 3,
-            SOAType::Dissipation => 4,
-            SOAType::PAStatus => 5,
-            SOAType::IQModulator => 6,
-            SOAType::Current => 7,
-            SOAType::Voltage => 8,
-            SOAType::ForwardPower => 9,
+        let temp_enabled: u8 = match self.temp_enabled {
+            true => 1,
+            false => 0,
         };
-
-        let enabled: u8 = match self.enabled {
+        let reflection_enabled: u8 = match self.reflection_enabled {
+            true => 1,
+            false => 0,
+        };
+        let external_watchdog_enabled: u8 = match self.external_watchdog_enabled {
+            true => 1,
+            false => 0,
+        };
+        let dissipation_enabled: u8 = match self.dissipation_enabled {
             true => 1,
             false => 0,
         };
 
-        format!("$SOA,{},{},{}", self.channel, soa_type, enabled)
+        format!(
+            "$SOA,{},{},1,{},{},{}",
+            self.channel,
+            temp_enabled,
+            reflection_enabled,
+            external_watchdog_enabled,
+            dissipation_enabled
+        )
     }
 }
 
 impl SetSOAConfig {
     /// Returns a handler to call the command using the given inputs.
-    pub fn new(channel: Channel, soa_type: SOAType, enabled: bool) -> Self {
+    pub fn new(
+        channel: Channel,
+        temp_enabled: bool,
+        reflection_enabled: bool,
+        external_watchdog_enabled: bool,
+        dissipation_enabled: bool,
+    ) -> Self {
         Self {
             channel,
-            soa_type,
-            enabled,
+            temp_enabled,
+            reflection_enabled,
+            external_watchdog_enabled,
+            dissipation_enabled,
+        }
+    }
+}
+
+impl Default for SetSOAConfig {
+    fn default() -> Self {
+        Self {
+            channel: Channel::default(),
+            temp_enabled: true,
+            reflection_enabled: true,
+            external_watchdog_enabled: true,
+            dissipation_enabled: true,
         }
     }
 }
@@ -102,10 +117,6 @@ pub struct GetSOAConfigResponse {
     pub temp_enabled: bool,
     pub reflection_enabled: bool,
     pub external_watchdog_enabled: bool,
-    pub dissipation_enabled: bool,
-    pub pa_status_enabled: bool,
-    pub iq_modulator_enabled: bool,
-    pub current_enabled: bool,
 }
 
 impl TryFrom<String> for GetSOAConfigResponse {
@@ -122,11 +133,17 @@ impl TryFrom<String> for GetSOAConfigResponse {
         let parts: Vec<&str> = response.split_whitespace().collect();
 
         // Ensure the input has the expected number of parts
-        if parts.len() != 10 {
+        if parts.len() != 4 {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let temp_enabled: bool = match parts[2].split('.').collect::<Vec<&str>>()[0]
+        let temp_parts: Vec<&str> = parts[1].split(":").collect();
+        let reflection_parts: Vec<&str> = parts[2].split(":").collect();
+        let watchdog_parts: Vec<&str> = parts[3].split(":").collect();
+        if temp_parts.len() != 2 || reflection_parts.len() != 2 || watchdog_parts.len() != 2 {
+            return Err(Self::Error::FailedParseResponse);
+        }
+        let temp_enabled: bool = match temp_parts[1].split('.').collect::<Vec<&str>>()[0]
             .trim()
             .parse::<u8>()
         {
@@ -138,9 +155,10 @@ impl TryFrom<String> for GetSOAConfigResponse {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let reflection_enabled: bool = match parts[4].split('.').collect::<Vec<&str>>()[0]
-            .trim()
-            .parse::<u8>()
+        let reflection_enabled: bool = match reflection_parts[1].split('.').collect::<Vec<&str>>()
+            [0]
+        .trim()
+        .parse::<u8>()
         {
             Ok(value) => match value {
                 1 => true,
@@ -150,75 +168,24 @@ impl TryFrom<String> for GetSOAConfigResponse {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
-        let external_watchdog_enabled: bool = match parts[5].split('.').collect::<Vec<&str>>()[0]
-            .trim()
-            .parse::<u8>()
-        {
-            Ok(value) => match value {
-                1 => true,
-                _ => false,
-            },
-            Err(_) => {
-                return Err(Self::Error::FailedParseResponse);
-            }
-        };
-        let dissipation_enabled: bool = match parts[6].split('.').collect::<Vec<&str>>()[0]
-            .trim()
-            .parse::<u8>()
-        {
-            Ok(value) => match value {
-                1 => true,
-                _ => false,
-            },
-            Err(_) => {
-                return Err(Self::Error::FailedParseResponse);
-            }
-        };
-        let pa_status_enabled: bool = match parts[7].split('.').collect::<Vec<&str>>()[0]
-            .trim()
-            .parse::<u8>()
-        {
-            Ok(value) => match value {
-                1 => true,
-                _ => false,
-            },
-            Err(_) => {
-                return Err(Self::Error::FailedParseResponse);
-            }
-        };
-        let iq_modulator_enabled: bool = match parts[8].split('.').collect::<Vec<&str>>()[0]
-            .trim()
-            .parse::<u8>()
-        {
-            Ok(value) => match value {
-                1 => true,
-                _ => false,
-            },
-            Err(_) => {
-                return Err(Self::Error::FailedParseResponse);
-            }
-        };
-        let current_enabled: bool = match parts[9].split('.').collect::<Vec<&str>>()[0]
-            .trim()
-            .parse::<u8>()
-        {
-            Ok(value) => match value {
-                1 => true,
-                _ => false,
-            },
-            Err(_) => {
-                return Err(Self::Error::FailedParseResponse);
-            }
-        };
+        let external_watchdog_enabled: bool =
+            match watchdog_parts[1].split('.').collect::<Vec<&str>>()[0]
+                .trim()
+                .parse::<u8>()
+            {
+                Ok(value) => match value {
+                    1 => true,
+                    _ => false,
+                },
+                Err(_) => {
+                    return Err(Self::Error::FailedParseResponse);
+                }
+            };
 
         Ok(GetSOAConfigResponse {
             temp_enabled,
             reflection_enabled,
             external_watchdog_enabled,
-            dissipation_enabled,
-            pa_status_enabled,
-            iq_modulator_enabled,
-            current_enabled,
         })
     }
 }

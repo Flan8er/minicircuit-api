@@ -54,7 +54,11 @@ pub struct SetAutoGainState {
 
 impl Into<String> for SetAutoGainState {
     fn into(self) -> String {
-        format!("$AGES,{},{}", self.channel, self.enabled)
+        let value: u8 = match self.enabled {
+            true => 1,
+            false => 0,
+        };
+        format!("$AGES,{},{}", self.channel, value)
     }
 }
 

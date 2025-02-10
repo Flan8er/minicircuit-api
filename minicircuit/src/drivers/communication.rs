@@ -25,7 +25,7 @@ pub fn write_read(port: &mut dyn SerialPort, tx: String) -> Result<String, Error
             Err(ref e) if e.kind() == std::io::ErrorKind::TimedOut => {
                 return Err(Error::new(
                     ErrorKind::Io(std::io::ErrorKind::TimedOut),
-                    "Timeout while waiting for response.",
+                    "System timedout while waiting for response from the controller.",
                 ));
             }
             Err(e) => {
@@ -37,6 +37,7 @@ pub fn write_read(port: &mut dyn SerialPort, tx: String) -> Result<String, Error
         }
     }
 
+    println!("{}", buffer.trim());
     Ok(buffer.trim().to_string())
 }
 
