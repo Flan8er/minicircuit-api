@@ -25,6 +25,7 @@ impl TryFrom<String> for SetDLLConfigResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// Sets the configured parameters of the DLL mode.
 pub struct SetDLLConfig {
     /// Channel identification number.
     pub channel: Channel,
@@ -207,6 +208,7 @@ impl TryFrom<String> for GetDLLConfigResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+/// Returns the configured parameters of the DLL mode.
 pub struct GetDLLConfig {
     /// Channel identification number.
     pub channel: Channel,

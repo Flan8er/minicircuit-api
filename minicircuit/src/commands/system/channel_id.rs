@@ -98,6 +98,7 @@ impl TryFrom<String> for GetChannelIDResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+/// Returns the channel number assigned to the ISC board.
 pub struct GetChannelID {}
 
 impl Into<String> for GetChannelID {
