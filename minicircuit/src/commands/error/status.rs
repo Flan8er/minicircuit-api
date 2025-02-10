@@ -99,10 +99,9 @@ impl TryFrom<String> for GetStatusResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let hex_status_code = match parts[3].split('.').collect::<Vec<&str>>()[0]
-            .trim()
-            .parse::<u64>()
-        {
+        let string_status_code = parts[3].split('.').collect::<Vec<&str>>()[0].trim();
+
+        let hex_status_code = match u64::from_str_radix(string_status_code, 16) {
             Ok(value) => value,
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
@@ -396,6 +395,10 @@ impl Status {
                     statuses.push(Status::from(StatusCode::UnspecifiedError));
                 }
             }
+        }
+
+        if statuses.len() == 0 {
+            statuses.push(Status::from(StatusCode::SystemOk))
         }
 
         statuses

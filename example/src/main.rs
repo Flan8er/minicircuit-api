@@ -663,7 +663,7 @@ async fn test_command_responses() {
     // let command = Command::SetDLLEnabled(SetDLLEnabled::default());
     // let command = Command::PerformSweepDBM(PerformSweepDBM::default());
     // let command = Command::PerformSweepWatt(PerformSweepWatt::default());
-    let command = Command::ClearErrors(ClearErrors::default());
+    // let command = Command::ClearErrors(ClearErrors::default());
     // let command = Command::GetPAErrors(GetPAErrors::default());
     // let command = Command::GetStatus(GetStatus::default());
     // let command = Command::GetIdentity(GetIdentity::default());
