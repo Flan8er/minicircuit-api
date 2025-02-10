@@ -190,3 +190,13 @@ impl Into<u8> for ClockSource {
         }
     }
 }
+impl Into<String> for ClockSource {
+    fn into(self) -> String {
+        match self {
+            ClockSource::Standalone => String::from("standalone"),
+            ClockSource::Master => String::from("master"),
+            ClockSource::Slave => String::from("slave"),
+            ClockSource::SlaveInline => String::from("slave-in-line"),
+        }
+    }
+}

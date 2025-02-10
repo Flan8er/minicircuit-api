@@ -37,7 +37,6 @@ pub fn write_read(port: &mut dyn SerialPort, tx: String) -> Result<String, Error
         }
     }
 
-    println!("{}", buffer.trim());
     Ok(buffer.trim().to_string())
 }
 

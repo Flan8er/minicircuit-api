@@ -32,7 +32,7 @@ pub struct GetPAErrorsResponse {
     ///
     /// Note: there is no protection limit set, so there should never be an internal
     /// alarm for these parameters.
-    pub pa_error_code: u8,
+    pub pa_errors: Vec<AlarmCause>,
 }
 
 impl TryFrom<String> for GetPAErrorsResponse {
@@ -53,18 +53,104 @@ impl TryFrom<String> for GetPAErrorsResponse {
             return Err(Self::Error::FailedParseResponse);
         }
 
-        let pa_error_code: u8 = match parts[2].split('.').collect::<Vec<&str>>()[0]
-            .trim()
-            .parse::<u8>()
-        {
+        let pa_error_code = parts[2].split('.').collect::<Vec<&str>>()[0].trim();
+
+        let hex_status_code = match u16::from_str_radix(pa_error_code, 16) {
             Ok(value) => value,
             Err(_) => {
                 return Err(Self::Error::FailedParseResponse);
             }
         };
 
-        Ok(GetPAErrorsResponse { pa_error_code })
+        Ok(GetPAErrorsResponse {
+            pa_errors: from_bitmask(hex_status_code),
+        })
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AlarmCause {
+    SystemOk,
+    ReflectedPowerUpper, // bit 0
+    ReflectedPowerLower, // bit 1
+    ForwardPowerUpper,   // bit 2
+    ForwardPowerLower,   // bit 3
+    CurrentUpper,        // bit 4
+    CurrentLower,        // bit 5
+    VSupplyUpper,        // bit 6
+    VSupplyLower,        // bit 7
+    TemperatureUpper,    // bit 10
+    TemperatureLower,    // bit 11
+}
+
+impl Into<String> for AlarmCause {
+    fn into(self) -> String {
+        match self {
+            AlarmCause::SystemOk => String::from("The PA has no errors."),
+            AlarmCause::ReflectedPowerUpper => String::from(
+                "The reflected power of the PA is greater than the allowed upper limit.",
+            ),
+            AlarmCause::ReflectedPowerLower => {
+                String::from("The reflected power of the PA is less than the allowed lower limit.")
+            }
+            AlarmCause::ForwardPowerUpper => {
+                String::from("The forward power of the PA is greater than the allowed upper limit.")
+            }
+            AlarmCause::ForwardPowerLower => {
+                String::from("The forward power of the PA is less than the allowed lower limit.")
+            }
+            AlarmCause::CurrentUpper => {
+                String::from("The current of the PA is greater than the allowed upper limit.")
+            }
+            AlarmCause::CurrentLower => {
+                String::from("The current of the PA is less than the allowed lower limit.")
+            }
+            AlarmCause::VSupplyUpper => {
+                String::from("The voltage of the PA is greater than the allowed upper limit.")
+            }
+            AlarmCause::VSupplyLower => {
+                String::from("The voltage of the PA is less than the allowed lower limit.")
+            }
+            AlarmCause::TemperatureUpper => {
+                String::from("The temperature of the PA is greater than the allowed upper limit.")
+            }
+            AlarmCause::TemperatureLower => {
+                String::from("The temperature of the PA is less than the allowed lower limit.")
+            }
+        }
+    }
+}
+
+pub fn from_bitmask(alarm_code: u16) -> Vec<AlarmCause> {
+    let mut alarms = Vec::new();
+
+    for bit_position in 0..16 {
+        let bit_mask = 1 << bit_position;
+
+        // Check if this bit is set
+        if (alarm_code & bit_mask) != 0 {
+            let alarm = match bit_position {
+                0 => AlarmCause::ReflectedPowerUpper,
+                1 => AlarmCause::ReflectedPowerLower,
+                2 => AlarmCause::ForwardPowerUpper,
+                3 => AlarmCause::ForwardPowerLower,
+                4 => AlarmCause::CurrentUpper,
+                5 => AlarmCause::CurrentLower,
+                6 => AlarmCause::VSupplyUpper,
+                7 => AlarmCause::VSupplyLower,
+                10 => AlarmCause::TemperatureUpper,
+                11 => AlarmCause::TemperatureLower,
+                _ => continue,
+            };
+
+            alarms.push(alarm);
+        }
+    }
+    if alarms.len() == 0 {
+        alarms.push(AlarmCause::SystemOk)
+    }
+
+    alarms
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

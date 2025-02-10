@@ -22,27 +22,9 @@ async fn main() {
     // Spawn a task to continuously receive message responses.
     let handle = spawn(async move {
         while let Ok(response) = channel_rx.recv().await {
-            match response {
-                Response::GetFrequencyResponse(get_frequency_response) => {
-                    println!("Frequency is set to: {}", get_frequency_response.frequency);
-                }
-                Response::SetFrequencyResponse(set_frequency_response) => {
-                    match set_frequency_response.result {
-                        Ok(_) => println!("Frequency was sucessfully updated."),
-                        Err(e) => println!("An error occurred executing the command. \n{}", e),
-                    }
-                }
-                Response::ReadWriteError(read_write_error) => {
-                    println!(
-                        "An error occurred sending a command to the signal generator.\n{:?}\n{}",
-                        read_write_error.error_kind, read_write_error.description
-                    )
-                }
-                Response::MWError(mwerror) => {
-                    println!("An error occurred executing a command. {}", mwerror)
-                }
-                _ => (),
-            };
+            let response: String = response.into();
+
+            println!("Response: {}", response);
         }
     });
 
@@ -73,6 +55,15 @@ async fn main() {
     println!("Successfully connected to the controller!");
 
     let mut controller = MiniCircuitDriver::new(port, channel, queue_rx);
+
+    // minicircuit::new(target_properties)
+    //
+    // Result<(send, receive), Err> = minicircuit.connect();
+    // Result<(channel_tx, log), Err> = minicircuit.connect_port();
+    //
+    // channel_tx.send()
+    //
+    // log.receive()
 
     // Setter function
     let set_frequency = Command::SetFrequency(SetFrequency::default());
