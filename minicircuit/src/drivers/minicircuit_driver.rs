@@ -94,7 +94,7 @@ pub struct Message {
 #[derive(Debug)]
 pub struct MiniCircuitDriver {
     pub properties: TargetProperties,
-    queue_handle: Option<std::thread::JoinHandle<()>>,
+    pub queue_handle: Option<std::thread::JoinHandle<()>>,
 }
 
 impl MiniCircuitDriver {
