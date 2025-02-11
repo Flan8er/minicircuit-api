@@ -1,11 +1,8 @@
-use std::sync::{
-    mpsc::{self},
-    Arc, Mutex,
-};
+use std::sync::{mpsc, Arc};
 
 use serde::{Deserialize, Serialize};
 use serialport::{Error, SerialPort};
-use tokio::sync::broadcast::{self};
+use tokio::sync::{broadcast, Mutex};
 
 use crate::commands::{
     basic::{
@@ -94,7 +91,7 @@ pub struct Message {
 #[derive(Debug)]
 pub struct MiniCircuitDriver {
     pub properties: TargetProperties,
-    pub queue_handle: Option<std::thread::JoinHandle<()>>,
+    pub queue_handle: Option<tokio::task::JoinHandle<()>>,
 }
 
 impl MiniCircuitDriver {
@@ -211,36 +208,36 @@ impl MiniCircuitDriver {
 
 fn spawn_queue_loop(
     queue_rx: std::sync::mpsc::Receiver<Message>,
-    port: Arc<Mutex<Box<dyn SerialPort>>>,
+    port: Arc<tokio::sync::Mutex<Box<dyn SerialPort>>>, // ✅ Use `tokio::sync::Mutex`
     channel_tx: tokio::sync::broadcast::Sender<Response>,
-) -> std::thread::JoinHandle<()> {
-    std::thread::spawn(move || loop {
-        // Define a vector for the queue so that it can be manipulated freely.
-        let mut queue = Vec::new();
-        while let Ok(msg) = queue_rx.try_recv() {
-            queue.push(msg);
-        }
+) -> tokio::task::JoinHandle<()> {
+    // ✅ Return `tokio::task::JoinHandle<()>`
+    tokio::spawn(async move {
+        loop {
+            // Define a vector for the queue so that it can be manipulated freely.
+            let mut queue = Vec::new();
+            while let Ok(msg) = queue_rx.try_recv() {
+                queue.push(msg);
+            }
 
-        // Sort the messages in the queue by priority.
-        queue.sort_by(|a, b| b.priority.cmp(&a.priority));
+            // Sort the messages in the queue by priority.
+            queue.sort_by(|a, b| b.priority.cmp(&a.priority));
 
-        // Loop through the messages in the queue.
-        for message in queue {
-            // Send the command to the controller and wait for the response.
-            let response = {
-                let mut port = match port.lock() {
-                    Ok(port) => port,
-                    Err(_) => break,
+            // Loop through the messages in the queue.
+            for message in queue {
+                // Send the command to the controller and wait for the response.
+                let response = {
+                    let mut port = port.lock().await; // ✅ Correctly await the async lock
+                    send_command(message.command, &mut **port)
                 };
-                send_command(message.command, &mut **port)
-            };
 
-            // Resurn the response to the caller.
-            let _ = channel_tx.send(response);
+                // Return the response to the caller.
+                let _ = channel_tx.send(response);
+            }
+
+            // Rest for the CPU.
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await; // ✅ Use `tokio::time::sleep`
         }
-
-        // Rest for the CPU.
-        std::thread::sleep(std::time::Duration::from_secs(1));
     })
 }
 
