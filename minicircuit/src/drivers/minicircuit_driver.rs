@@ -95,9 +95,6 @@ pub struct Message {
 pub struct MiniCircuitDriver {
     pub properties: TargetProperties,
     queue_handle: Option<std::thread::JoinHandle<()>>,
-    // port: Option<Box<dyn SerialPort>>, // pub port: Box<dyn SerialPort>,
-    // pub channel: tokio::sync::broadcast::Sender<Response>,
-    // pub queue: std::sync::mpsc::Receiver<Message>,
 }
 
 impl MiniCircuitDriver {
@@ -218,14 +215,18 @@ fn spawn_queue_loop(
     channel_tx: tokio::sync::broadcast::Sender<Response>,
 ) -> std::thread::JoinHandle<()> {
     std::thread::spawn(move || loop {
+        // Define a vector for the queue so that it can be manipulated freely.
         let mut queue = Vec::new();
         while let Ok(msg) = queue_rx.try_recv() {
             queue.push(msg);
         }
 
+        // Sort the messages in the queue by priority.
         queue.sort_by(|a, b| b.priority.cmp(&a.priority));
 
+        // Loop through the messages in the queue.
         for message in queue {
+            // Send the command to the controller and wait for the response.
             let response = {
                 let mut port = match port.lock() {
                     Ok(port) => port,
@@ -234,9 +235,11 @@ fn spawn_queue_loop(
                 send_command(message.command, &mut **port)
             };
 
+            // Resurn the response to the caller.
             let _ = channel_tx.send(response);
         }
 
+        // Rest for the CPU.
         std::thread::sleep(std::time::Duration::from_secs(1));
     })
 }
