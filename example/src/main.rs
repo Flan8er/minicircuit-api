@@ -1,15 +1,11 @@
-use std::sync::mpsc;
 use tokio::spawn;
-use tokio::sync::broadcast;
 
 use minicircuit::{
     commands::{
         basic::frequency::{GetFrequency, SetFrequency},
         command::Command,
-        response::Response,
     },
     drivers::{
-        connection::{connect_to_signal_generator, open_port},
         minicircuit_driver::{Message, MiniCircuitDriver, Priority},
         properties::TargetProperties,
     },
@@ -17,53 +13,38 @@ use minicircuit::{
 
 #[tokio::main]
 async fn main() {
-    // A channel that will be used by the driver to deliver responses from the commands back.
-    let (channel, mut channel_rx) = broadcast::channel::<Response>(100);
-    // Spawn a task to continuously receive message responses.
-    let handle = spawn(async move {
-        while let Ok(response) = channel_rx.recv().await {
-            let response: String = response.into();
-
-            println!("Response: {}", response);
-        }
-    });
-
-    // A queue that can be used for sending commands to the driver.
-    let (queue, queue_rx) = mpsc::channel::<Message>();
-
-    // Connect to the signal generator that has the desired properties.
+    // Define the properties of the signal generator you are working with.
     let target_properties = TargetProperties::default();
+
+    // Build the controller driver
+    let mut controller = MiniCircuitDriver::new(target_properties);
+
     // The port can either be opened by specifying the physical port using the port property in TargetProperties.
     if false {
-        let _port = match open_port(target_properties.clone()) {
-            Some(port) => port,
-            None => {
-                eprintln!("Exiting program: No valid connection.");
+        let (_channel_tx, _log) = match controller.port_connect() {
+            Ok(channels) => channels,
+            Err(e) => {
+                eprintln!("Unable to connect to the controller: {}", e);
                 return;
             }
         };
     }
     // Or the port can be automatically detected and opened using the desired product and manufacturer IDs in TargetProperties.
     // Use this method if the port location isn't guaranteed.
-    let port = match connect_to_signal_generator(target_properties) {
-        Some(port) => port,
-        None => {
-            eprintln!("Exiting program: No valid connection.");
+    let (channel_tx, mut log) = match controller.connect() {
+        Ok(channels) => channels,
+        Err(e) => {
+            eprintln!("Unable to connect to the controller: {}", e);
             return;
         }
     };
-    println!("Successfully connected to the controller!");
 
-    let mut controller = MiniCircuitDriver::new(port, channel, queue_rx);
-
-    // minicircuit::new(target_properties)
-    //
-    // Result<(send, receive), Err> = minicircuit.connect();
-    // Result<(channel_tx, log), Err> = minicircuit.connect_port();
-    //
-    // channel_tx.send()
-    //
-    // log.receive()
+    let handle = spawn(async move {
+        while let Ok(response) = log.recv().await {
+            let response: String = response.into();
+            println!("{}", response);
+        }
+    });
 
     // Setter function
     let set_frequency = Command::SetFrequency(SetFrequency::default());
@@ -72,24 +53,14 @@ async fn main() {
 
     // Giving the "setter" function higher priority so that it is executed before the "getter".
     // This ensures the getter is returning the current state.
-    let _ = queue.send(Message {
+    let _ = channel_tx.send(Message {
         priority: Priority::High,
         command: set_frequency.clone(),
     });
-    let _ = queue.send(Message {
+    let _ = channel_tx.send(Message {
         priority: Priority::Low,
         command: get_frequency.clone(),
     });
 
-    // Telling the driver to execute all the commands that are in it's queue.
-    controller.handle_queue();
-
-    //
-    // The driver can also execute commands directly.
-    //
-    let _set_frequency_response: Response = controller.send(set_frequency);
-    let _get_frequency_response: Response = controller.send(get_frequency);
-
-    // Parse the responses from the queue as a result of executing the commands.
     handle.await.unwrap();
 }
