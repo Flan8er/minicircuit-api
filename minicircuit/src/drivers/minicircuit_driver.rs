@@ -208,10 +208,9 @@ impl MiniCircuitDriver {
 
 fn spawn_queue_loop(
     queue_rx: std::sync::mpsc::Receiver<Message>,
-    port: Arc<tokio::sync::Mutex<Box<dyn SerialPort>>>, // ✅ Use `tokio::sync::Mutex`
+    port: Arc<tokio::sync::Mutex<Box<dyn SerialPort>>>,
     channel_tx: tokio::sync::broadcast::Sender<Response>,
 ) -> tokio::task::JoinHandle<()> {
-    // ✅ Return `tokio::task::JoinHandle<()>`
     tokio::spawn(async move {
         loop {
             // Define a vector for the queue so that it can be manipulated freely.
@@ -227,7 +226,7 @@ fn spawn_queue_loop(
             for message in queue {
                 // Send the command to the controller and wait for the response.
                 let response = {
-                    let mut port = port.lock().await; // ✅ Correctly await the async lock
+                    let mut port = port.lock().await;
                     send_command(message.command, &mut **port)
                 };
 
@@ -236,7 +235,7 @@ fn spawn_queue_loop(
             }
 
             // Rest for the CPU.
-            tokio::time::sleep(std::time::Duration::from_secs(1)).await; // ✅ Use `tokio::time::sleep`
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         }
     })
 }
