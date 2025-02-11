@@ -111,14 +111,14 @@ impl MiniCircuitDriver {
     pub fn connect(
         &mut self,
     ) -> Result<(mpsc::Sender<Message>, broadcast::Receiver<Response>), Error> {
+        let properties_clone = self.properties.clone();
+
         // Get a list of ports that match the vendor and product ids with those of the target properties.
-        let signal_generators = match autodetect_sg_port(
-            self.properties.vendor_id.clone(),
-            self.properties.product_id.clone(),
-        ) {
-            Ok(list_of_sg) => list_of_sg,
-            Err(e) => return Err(e),
-        };
+        let signal_generators =
+            match autodetect_sg_port(properties_clone.vendor_id, properties_clone.product_id) {
+                Ok(list_of_sg) => list_of_sg,
+                Err(e) => return Err(e),
+            };
 
         // Verify a port was detected.
         if signal_generators.is_empty() {
@@ -134,13 +134,13 @@ impl MiniCircuitDriver {
         // Open a serial connection with the detected port at the requested settings.
         let port = match serialport::new(
             &first_signal_generator.port_name,
-            self.properties.baud_rate.clone().into(),
+            properties_clone.baud_rate.into(),
         )
-        .data_bits(self.properties.data_bits)
-        .parity(self.properties.parity)
-        .flow_control(self.properties.flow_control)
-        .stop_bits(self.properties.stop_bits)
-        .timeout(self.properties.connection_timeout)
+        .data_bits(properties_clone.data_bits)
+        .parity(properties_clone.parity)
+        .flow_control(properties_clone.flow_control)
+        .stop_bits(properties_clone.stop_bits)
+        .timeout(properties_clone.connection_timeout)
         .open()
         {
             Ok(port) => port,
@@ -171,25 +171,26 @@ impl MiniCircuitDriver {
     pub fn port_connect(
         &mut self,
     ) -> Result<(mpsc::Sender<Message>, broadcast::Receiver<Response>), Error> {
-        let Some(port_name) = self.properties.clone().port else {
+        let properties_clone = self.properties.clone();
+
+        let Some(port_name) = properties_clone.port else {
             return Err(Error::new(serialport::ErrorKind::InvalidInput, "A port must be defined in order to connect to it. Please add a port to the target properties."));
         };
 
         // Open a serial connection with the detected port at the requested settings.
-        let port =
-            match serialport::new(port_name.clone(), self.properties.baud_rate.clone().into())
-                .data_bits(self.properties.data_bits)
-                .parity(self.properties.parity)
-                .flow_control(self.properties.flow_control)
-                .stop_bits(self.properties.stop_bits)
-                .timeout(self.properties.connection_timeout)
-                .open()
-            {
-                Ok(port) => port,
-                Err(e) => {
-                    return Err(e);
-                }
-            };
+        let port = match serialport::new(port_name.clone(), properties_clone.baud_rate.into())
+            .data_bits(properties_clone.data_bits)
+            .parity(properties_clone.parity)
+            .flow_control(properties_clone.flow_control)
+            .stop_bits(properties_clone.stop_bits)
+            .timeout(properties_clone.connection_timeout)
+            .open()
+        {
+            Ok(port) => port,
+            Err(e) => {
+                return Err(e);
+            }
+        };
 
         // Wrap `port` in `Arc<Mutex<T>>` so it can be shared across threads.
         let port = Arc::new(Mutex::new(port));
