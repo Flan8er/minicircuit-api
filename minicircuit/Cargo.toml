@@ -7,7 +7,7 @@ edition = "2021"
 serialport = { version = "4.7.0", default-features = false, features = [
     "serde",
 ] }
-tokio = { version = "1", features = ["full"], optional = true}
+tokio = { version = "1", features = ["full"], optional = false}
 serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1.0"
 serde_json = "1.0"
