@@ -240,6 +240,7 @@ fn spawn_queue_loop(
     })
 }
 
+#[allow(deprecated)]
 fn send_command(command: Command, port: &mut dyn SerialPort) -> Response {
     match command {
         Command::GetPAPowerADC(get_papower_adc) => {
