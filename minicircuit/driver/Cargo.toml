@@ -1,0 +1,16 @@
+[package]
+name = "minicircuit_driver"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+minicircuit_commands = { path = "../commands" }
+serialport = { version = "4.7.0", default-features = false, features = [
+    "serde",
+] }
+tokio = { version = "1", features = ["full"], optional = true }
+serde = { version = "1.0", features = ["derive"] }
+
+[features]
+default = ["driver"]
+driver = ["dep:tokio"]

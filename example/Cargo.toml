@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-minicircuit = { path = "../minicircuit" }
+minicircuit_commands = { path = "../minicircuit/commands" }
+minicircuit_driver = { path = "../minicircuit/driver" }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
