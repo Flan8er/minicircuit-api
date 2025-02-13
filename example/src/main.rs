@@ -2,12 +2,9 @@ use tokio::spawn;
 
 use minicircuit_commands::{
     basic::frequency::{GetFrequency, SetFrequency},
-    command::Command,
+    command::{Command, Message, Priority},
 };
-use minicircuit_driver::{
-    driver::{Message, MiniCircuitDriver, Priority},
-    properties::TargetProperties,
-};
+use minicircuit_driver::{driver::MiniCircuitDriver, properties::TargetProperties};
 
 #[tokio::main]
 async fn main() {

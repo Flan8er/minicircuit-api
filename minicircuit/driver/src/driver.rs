@@ -19,7 +19,7 @@ use minicircuit_commands::{
         temperature::GetPATempResponse,
         voltage::GetPAVoltageResponse,
     },
-    command::Command,
+    command::{Command, Message},
     data_types::errors::ReadWriteError,
     dll::{
         config::{GetDLLConfigResponse, SetDLLConfigResponse},
@@ -71,21 +71,6 @@ use minicircuit_commands::{
 use super::{
     communication::write_read, connection::autodetect_sg_port, properties::TargetProperties,
 };
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Priority {
-    Low,
-    Standard,
-    High,
-    Immediate,
-    Termination,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct Message {
-    pub priority: Priority,
-    pub command: Command,
-}
 
 #[derive(Debug)]
 pub struct MiniCircuitDriver {
