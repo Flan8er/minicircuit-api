@@ -203,7 +203,7 @@ impl Into<String> for Response {
             }
             Response::GetPhaseResponse(get_phase_response) => {
                 format!(
-                    "The ISC board's RF output phase is currently {}°.",
+                    "The ISC board's RF output phase is currently {}deg.",
                     get_phase_response.phase
                 )
             }
@@ -246,7 +246,7 @@ impl Into<String> for Response {
             }
             Response::GetPATempResponse(get_patemp_response) => {
                 format!(
-                    "The PA temperature is currently {}°C.",
+                    "The PA temperature is currently {}degC.",
                     get_patemp_response.temperature
                 )
             }
@@ -342,7 +342,7 @@ impl Into<String> for Response {
             }
             Response::GetISCTempResponse(get_isctemp_response) => {
                 format!(
-                    "The ISC board temperature is currently {}°C.",
+                    "The ISC board temperature is currently {}degC.",
                     get_isctemp_response.temperature
                 )
             }
@@ -572,7 +572,7 @@ impl Into<String> for Response {
             }
             Response::GetSOATempConfigResponse(get_soatemp_config_response) => {
                 format!(
-                    "The SOA temperature configuration is currently:\nHigh: {}°C\nShutdown: {}°C",
+                    "The SOA temperature configuration is currently:\nHigh: {}degC\nShutdown: {}degC",
                     get_soatemp_config_response.high_temp,
                     get_soatemp_config_response.shutdown_temp
                 )

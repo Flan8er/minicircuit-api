@@ -7,7 +7,7 @@ use crate::data_types::{
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct GetISCTempResponse {
-    /// The temperature of the ISC microcontroller in °C.
+    /// The temperature of the ISC microcontroller in degC.
     pub temperature: Temperature,
 }
 

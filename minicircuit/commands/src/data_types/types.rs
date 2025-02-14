@@ -210,7 +210,7 @@ impl Display for Volts {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-/// Units of °C.
+/// Units of degC.
 pub struct Temperature {
     pub temperature: u8,
 }
