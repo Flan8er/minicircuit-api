@@ -7,22 +7,44 @@ use serde::{Deserialize, Serialize};
 // --------------------------Frequency---------------------------- //
 //                                                                 //
 // --------------------------------------------------------------- //
+use std::str::FromStr;
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Frequency {
     /// Typical values are in MHz.
     pub frequency: u16,
 }
+
 impl Frequency {
-    /// Creates a new frequency operator in units of MHz.
+    /// Limits for frequency (you can adjust as needed).
+    const MIN: u16 = 2400;
+    const MAX: u16 = 2500;
+
+    /// Creates a new frequency, **clamping** values within the allowed range.
     pub fn new(frequency: u16) -> Self {
-        Self { frequency }
+        Self {
+            frequency: frequency.clamp(Self::MIN, Self::MAX),
+        }
     }
 }
-impl Into<u16> for Frequency {
-    fn into(self) -> u16 {
-        self.frequency
+
+impl FromStr for Frequency {
+    type Err = String;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s.trim().parse::<u16>() {
+            Ok(num) => Ok(Frequency::new(num)),
+            Err(_) => Err(format!("Invalid frequency format: '{}'", s)),
+        }
     }
 }
+
+impl From<Frequency> for u16 {
+    fn from(f: Frequency) -> u16 {
+        f.frequency
+    }
+}
+
 impl Display for Frequency {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", self.frequency)
