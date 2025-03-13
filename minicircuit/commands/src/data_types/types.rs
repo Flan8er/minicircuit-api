@@ -9,6 +9,11 @@ use serde::{Deserialize, Serialize};
 // --------------------------------------------------------------- //
 use std::str::FromStr;
 
+pub trait Bounded {
+    fn min_value(&self) -> u16;
+    fn max_value(&self) -> u16;
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Frequency {
     /// Typical values are in MHz.
@@ -29,6 +34,16 @@ impl Frequency {
             min_value: Self::MIN,
             max_value: Self::MAX,
         }
+    }
+}
+
+impl Bounded for Frequency {
+    fn min_value(&self) -> u16 {
+        self.min_value
+    }
+
+    fn max_value(&self) -> u16 {
+        self.max_value
     }
 }
 
