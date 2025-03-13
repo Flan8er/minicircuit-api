@@ -13,6 +13,8 @@ use std::str::FromStr;
 pub struct Frequency {
     /// Typical values are in MHz.
     pub frequency: u16,
+    pub min_value: u16,
+    pub max_value: u16,
 }
 
 impl Frequency {
@@ -24,6 +26,8 @@ impl Frequency {
     pub fn new(frequency: u16) -> Self {
         Self {
             frequency: frequency.clamp(Self::MIN, Self::MAX),
+            min_value: Self::MIN,
+            max_value: Self::MAX,
         }
     }
 }
