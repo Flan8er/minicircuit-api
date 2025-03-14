@@ -1,31 +1,34 @@
-use std::fmt::{Display, Formatter, Result};
-
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter, Result};
+use std::str::FromStr;
+
+pub trait Bounded {
+    type ValueType: PartialOrd + Copy; // Allow any numeric type that supports ordering
+
+    fn min_value(&self) -> Self::ValueType;
+    fn max_value(&self) -> Self::ValueType;
+    fn increment(&self) -> Self::ValueType;
+}
 
 // --------------------------------------------------------------- //
 //                                                                 //
 // --------------------------Frequency---------------------------- //
 //                                                                 //
 // --------------------------------------------------------------- //
-use std::str::FromStr;
-
-pub trait Bounded {
-    fn min_value(&self) -> u16;
-    fn max_value(&self) -> u16;
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Frequency {
     /// Typical values are in MHz.
     pub frequency: u16,
     pub min_value: u16,
     pub max_value: u16,
+    pub increment: u16,
 }
 
 impl Frequency {
     /// Limits for frequency (you can adjust as needed).
     const MIN: u16 = 2400;
     const MAX: u16 = 2500;
+    const INCREMENT: u16 = 10;
 
     /// Creates a new frequency, **clamping** values within the allowed range.
     pub fn new(frequency: u16) -> Self {
@@ -33,17 +36,24 @@ impl Frequency {
             frequency: frequency.clamp(Self::MIN, Self::MAX),
             min_value: Self::MIN,
             max_value: Self::MAX,
+            increment: Self::INCREMENT,
         }
     }
 }
 
 impl Bounded for Frequency {
-    fn min_value(&self) -> u16 {
-        self.min_value
+    type ValueType = u16;
+
+    fn min_value(&self) -> Self::ValueType {
+        Self::MIN
     }
 
-    fn max_value(&self) -> u16 {
-        self.max_value
+    fn max_value(&self) -> Self::ValueType {
+        Self::MAX
+    }
+
+    fn increment(&self) -> Self::ValueType {
+        Self::INCREMENT
     }
 }
 
