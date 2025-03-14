@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter, Result};
 use std::str::FromStr;
 
 pub trait Bounded {
-    type ValueType: PartialOrd + Copy; // Allow any numeric type that supports ordering
+    type ValueType: PartialOrd + Copy + Display; // Allow any numeric type that supports ordering
 
     fn min_value(&self) -> Self::ValueType;
     fn max_value(&self) -> Self::ValueType;
