@@ -2,21 +2,6 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result};
 use std::str::FromStr;
 
-pub trait Bounded {
-    type ValueType: Ord
-        + PartialOrd
-        + Copy
-        + FromStr
-        + std::fmt::Display
-        + std::fmt::Debug
-        + std::ops::Add<Output = Self::ValueType>
-        + std::ops::Sub<Output = Self::ValueType>;
-
-    fn min_value(&self) -> Self::ValueType;
-    fn max_value(&self) -> Self::ValueType;
-    fn increment(&self) -> Self::ValueType;
-}
-
 // --------------------------------------------------------------- //
 //                                                                 //
 // --------------------------Frequency---------------------------- //
@@ -45,22 +30,6 @@ impl Frequency {
             max_value: Self::MAX,
             increment: Self::INCREMENT,
         }
-    }
-}
-
-impl Bounded for Frequency {
-    type ValueType = u16;
-
-    fn min_value(&self) -> Self::ValueType {
-        Self::MIN
-    }
-
-    fn max_value(&self) -> Self::ValueType {
-        Self::MAX
-    }
-
-    fn increment(&self) -> Self::ValueType {
-        Self::INCREMENT
     }
 }
 
