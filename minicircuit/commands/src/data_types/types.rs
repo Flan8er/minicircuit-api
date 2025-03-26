@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result};
+use std::ops::{Add, Sub};
 use std::str::FromStr;
 
 // --------------------------------------------------------------- //
@@ -7,29 +8,15 @@ use std::str::FromStr;
 // --------------------------Frequency---------------------------- //
 //                                                                 //
 // --------------------------------------------------------------- //
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Copy)]
 pub struct Frequency {
     /// Typical values are in MHz.
     pub frequency: u16,
-    pub min_value: u16,
-    pub max_value: u16,
-    pub increment: u16,
 }
 
 impl Frequency {
-    /// Limits for frequency (you can adjust as needed).
-    const MIN: u16 = 2400;
-    const MAX: u16 = 2500;
-    const INCREMENT: u16 = 10;
-
-    /// Creates a new frequency, **clamping** values within the allowed range.
     pub fn new(frequency: u16) -> Self {
-        Self {
-            frequency: frequency.clamp(Self::MIN, Self::MAX),
-            min_value: Self::MIN,
-            max_value: Self::MAX,
-            increment: Self::INCREMENT,
-        }
+        Self { frequency }
     }
 }
 
@@ -53,6 +40,28 @@ impl From<Frequency> for u16 {
 impl Display for Frequency {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", self.frequency)
+    }
+}
+
+impl Add for Frequency {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
+        Frequency::new(self.frequency + other.frequency)
+    }
+}
+
+impl Sub for Frequency {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Frequency::new(self.frequency - other.frequency)
+    }
+}
+
+impl From<u16> for Frequency {
+    fn from(value: u16) -> Self {
+        Self::new(value)
     }
 }
 
