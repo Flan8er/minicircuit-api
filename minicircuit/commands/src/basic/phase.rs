@@ -88,7 +88,7 @@ impl TryFrom<String> for GetPhaseResponse {
 
         let phase: Phase = match parts[2].split('.').collect::<Vec<&str>>()[0]
             .trim()
-            .parse::<u16>()
+            .parse::<i16>()
         {
             Ok(value) => Phase::new(value),
             Err(_) => {
