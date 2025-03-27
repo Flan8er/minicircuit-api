@@ -51,7 +51,7 @@ impl Default for SetPAPowerSetpointWatt {
     fn default() -> Self {
         Self {
             channel: Channel::default(),
-            power: Watt::new(250.),
+            power: Watt::new(25.),
         }
     }
 }
