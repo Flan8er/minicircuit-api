@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result};
-use std::ops::{Add, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 use std::str::FromStr;
 
 // --------------------------------------------------------------- //
@@ -141,6 +141,30 @@ impl Sub for Watt {
 
     fn sub(self, other: Self) -> Self::Output {
         Watt::new(self.power - other.power)
+    }
+}
+
+impl Mul<f32> for Watt {
+    type Output = Self;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Watt::new(self.power * rhs)
+    }
+}
+
+impl Mul<Watt> for f32 {
+    type Output = Watt;
+
+    fn mul(self, rhs: Watt) -> Self::Output {
+        Watt::new(self * rhs.power)
+    }
+}
+
+impl Div<f32> for Watt {
+    type Output = Self;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        Watt::new(self.power / rhs)
     }
 }
 
