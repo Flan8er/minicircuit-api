@@ -116,3 +116,13 @@ pub fn autodetect_sg_port(
         })
         .collect())
 }
+
+pub fn print_available_ports() {
+    // Get a list of available coms ports.
+    let available_ports = match available_ports() {
+        Ok(ports) => ports,
+        Err(e) => return,
+    };
+
+    println!("All available ports are {:#?}", available_ports)
+}
