@@ -63,7 +63,7 @@ impl TargetProperties {
 impl Default for TargetProperties {
     fn default() -> Self {
         return Self {
-            port: Some(String::from("/dev/tty.usbserial-FTBXKGR7")),
+            port: None, // "/dev/tty.usbserial-FTBXKGR7"
             vendor_id: VendorId::default(),
             product_id: ProductId::default(),
             baud_rate: BaudRate::default(),
