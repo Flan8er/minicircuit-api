@@ -248,7 +248,7 @@ fn run_simulator(simulator: Arc<Mutex<MiniCircuitSimulator>>, port_name: &str) {
         Err(e) => println!("Error listing ports: {}", e),
     }
     
-    // Open the serial port
+    // Open the serial port with a shorter timeout
     let mut port = match serialport::new(port_name, 115200)
         .timeout(Duration::from_millis(1000))
         .open() {
@@ -271,64 +271,90 @@ fn run_simulator(simulator: Arc<Mutex<MiniCircuitSimulator>>, port_name: &str) {
             }
         };
     
-    // Remove the duplicate port opening code
-    
     // Buffer for reading commands
     let mut buffer = [0u8; 1024];
     let mut command_buffer = Vec::new();
     
-    // Main loop
+    println!("Simulator ready to receive commands on port {}", port_name);
+    
     loop {
         // Read data from the port
         match port.read(&mut buffer) {
-            Ok(n) if n > 0 => {
-                // Process the received data
-                for &byte in &buffer[..n] {
-                    command_buffer.push(byte);
+            Ok(bytes_read) => {
+                if bytes_read > 0 {
+                    // Convert bytes to string
+                    let data = String::from_utf8_lossy(&buffer[..bytes_read]);
+                    println!("Received data: {:?}", data);
                     
-                    // Check if we have a complete command (ending with \r\n)
-                    if command_buffer.len() >= 2 && 
-                       command_buffer[command_buffer.len() - 2] == b'\r' && 
-                       command_buffer[command_buffer.len() - 1] == b'\n' {
-                        
-                        // Convert the command to a string and process it
-                        let command = String::from_utf8_lossy(&command_buffer[..command_buffer.len() - 2]);
-                        
-                        // Create a longer-lived value with let binding
-                        let command_str = command.to_string();
-                        
-                        let response = {
-                            let mut sim = simulator.lock().unwrap();
-                            sim.process_command(&command_str)
-                        };
-                        
-                        // Send the response back
-                        let response = format!("{}\r\n", response);
-                        if let Err(e) = port.write_all(response.as_bytes()) {
-                            error!("Failed to write response: {}", e);
+                    // Process each character
+                    for c in data.chars() {
+                        if c == '\r' || c == '\n' {
+                            // End of command
+                            if !command_buffer.is_empty() {
+                                // Process the command
+                                let command = String::from_iter(command_buffer.iter());
+                                println!("Received command: {}", command);
+                                
+                                // Get the response from the simulator
+                                let response = {
+                                    let mut sim = simulator.lock().unwrap();
+                                    sim.process_command(&command)
+                                };
+                                
+                                // Special handling for identity command
+                                if command.contains("$IDN") {
+                                    println!("Identity command detected: {}", command);
+                                    println!("Identity response: {}", response);
+                                }
+                                
+                                // Send the response back immediately
+                                let response_with_newline = format!("{}\r\n", response);
+                                println!("Sending response: {}", response);
+                                if let Err(e) = port.write_all(response_with_newline.as_bytes()) {
+                                    error!("Failed to write response: {}", e);
+                                }
+                                port.flush().unwrap_or_else(|e| error!("Failed to flush port: {}", e));
+                                
+                                // Clear the command buffer for the next command
+                                command_buffer.clear();
+                            }
+                        } else {
+                            // Add character to command buffer
+                            command_buffer.push(c);
                         }
-                        
-                        // Clear the command buffer for the next command
-                        command_buffer.clear();
                     }
                 }
             },
-            Ok(_) => {
-                // No data received, just continue
-                thread::sleep(Duration::from_millis(10));
-            },
-            Err(e) if e.kind() == std::io::ErrorKind::TimedOut => {
-                // Timeout is normal, just continue
-                thread::sleep(Duration::from_millis(10));
-            },
             Err(e) => {
-                // Other errors might indicate a problem
-                error!("Error reading from port: {}", e);
-                thread::sleep(Duration::from_millis(100));
+                // Ignore timeout errors as they're expected when no data is available
+                if e.kind() != std::io::ErrorKind::TimedOut {
+                    error!("Error reading from port: {}", e);
+                }
             }
         }
+        
+        // Print the command log periodically
+        if let Ok(sim) = simulator.try_lock() {
+            let log = sim.get_command_log();
+            if !log.is_empty() && log.len() % 5 == 0 {
+                println!("Command log (last {} commands):", log.len().min(5));
+                for cmd in log.iter().rev().take(5) {
+                    println!("  {}", cmd);
+                }
+            }
+        }
+        
+        // Small delay to prevent CPU spinning
+        std::thread::sleep(Duration::from_millis(10));
     }
 }
+
+
+
+
+
+
+
 
 
 

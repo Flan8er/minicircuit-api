@@ -11,3 +11,12 @@ pub mod soa;
 pub mod system;
 
 pub mod data_types;
+
+// Add the prelude module
+pub mod prelude;
+
+// Re-export common types for easier imports
+pub use command::Command;
+pub use command::Message;
+pub use command::Priority;
+pub use response::Response;
