@@ -91,19 +91,32 @@ impl MiniCircuitDriver {
     ) -> Result<(mpsc::Sender<Message>, broadcast::Receiver<Response>), Error> {
         let properties_clone = self.properties.clone();
 
-        // Get a list of ports that match the vendor and product ids with those of the target properties.
-        let signal_generators =
-            match autodetect_sg_port(properties_clone.vendor_id, properties_clone.product_id) {
-                Ok(list_of_sg) => list_of_sg,
-                Err(e) => return Err(e),
-            };
+        // Try to get a list of ports that match the vendor and product ids
+        let signal_generators = match autodetect_sg_port(properties_clone.vendor_id, properties_clone.product_id) {
+            Ok(list_of_sg) => list_of_sg,
+            Err(e) => {
+                // If autodetection fails and we have a specified port, try to use that instead
+                if let Some(port_name) = &properties_clone.port {
+                    println!("Autodetection failed: {}. Falling back to specified port: {}", e, port_name);
+                    return self.port_connect();
+                } else {
+                    return Err(e);
+                }
+            }
+        };
 
         // Verify a port was detected.
         if signal_generators.is_empty() {
-            return Err(Error::new(
-                serialport::ErrorKind::NoDevice,
-                "Unable to detect device matching defined properties.",
-            ));
+            // If no ports were detected but we have a specified port, try to use that instead
+            if let Some(port_name) = &properties_clone.port {
+                println!("No devices detected matching defined properties. Falling back to specified port: {}", port_name);
+                return self.port_connect();
+            } else {
+                return Err(Error::new(
+                    serialport::ErrorKind::NoDevice,
+                    "Unable to detect device matching defined properties.",
+                ));
+            }
         }
 
         // Connect to the first port that matches the requirements.
