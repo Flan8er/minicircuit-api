@@ -88,22 +88,26 @@ impl MiniCircuitDriver {
 
     pub fn connect(
         &mut self,
-    ) -> Result<(mpsc::Sender<Message>, broadcast::Receiver<Response>), Error> {
+    ) -> Result<(mpsc::Sender<Message>, broadcast::Sender<Response>), Error> {
         let properties_clone = self.properties.clone();
 
         // Try to get a list of ports that match the vendor and product ids
-        let signal_generators = match autodetect_sg_port(properties_clone.vendor_id, properties_clone.product_id) {
-            Ok(list_of_sg) => list_of_sg,
-            Err(e) => {
-                // If autodetection fails and we have a specified port, try to use that instead
-                if let Some(port_name) = &properties_clone.port {
-                    println!("Autodetection failed: {}. Falling back to specified port: {}", e, port_name);
-                    return self.port_connect();
-                } else {
-                    return Err(e);
+        let signal_generators =
+            match autodetect_sg_port(properties_clone.vendor_id, properties_clone.product_id) {
+                Ok(list_of_sg) => list_of_sg,
+                Err(e) => {
+                    // If autodetection fails and we have a specified port, try to use that instead
+                    if let Some(port_name) = &properties_clone.port {
+                        println!(
+                            "Autodetection failed: {}. Falling back to specified port: {}",
+                            e, port_name
+                        );
+                        return self.port_connect();
+                    } else {
+                        return Err(e);
+                    }
                 }
-            }
-        };
+            };
 
         // Verify a port was detected.
         if signal_generators.is_empty() {
@@ -161,7 +165,7 @@ impl MiniCircuitDriver {
 
     pub fn port_connect(
         &mut self,
-    ) -> Result<(mpsc::Sender<Message>, broadcast::Receiver<Response>), Error> {
+    ) -> Result<(mpsc::Sender<Message>, broadcast::Sender<Response>), Error> {
         let properties_clone = self.properties.clone();
 
         let Some(port_name) = properties_clone.port else {
@@ -199,7 +203,7 @@ impl MiniCircuitDriver {
         self.queue_handle = Some(spawn_queue_loop(queue_rx, port_clone, channel_tx.clone()));
 
         // Return the queue sender and response receiver.
-        Ok((queue_tx, channel_rx))
+        Ok((queue_tx, channel_tx))
     }
 }
 
