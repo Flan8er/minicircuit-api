@@ -1,13 +1,16 @@
 use tokio::spawn;
 
+use minicircuit_commands::properties::TargetProperties;
 use minicircuit_commands::{
     basic::frequency::{GetFrequency, SetFrequency},
     command::{Command, Message, Priority},
 };
-use minicircuit_driver::{driver::MiniCircuitDriver, properties::TargetProperties};
+use minicircuit_driver::{connection::print_available_ports, driver::MiniCircuitDriver};
 
 #[tokio::main]
 async fn main() {
+    print_available_ports();
+
     // Define the properties of the signal generator you are working with.
     let target_properties = TargetProperties::default();
 
@@ -26,7 +29,7 @@ async fn main() {
     }
     // Or the port can be automatically detected and opened using the desired product and manufacturer IDs in TargetProperties.
     // Use this method if the port location isn't guaranteed.
-    let (channel_tx, mut log_rx) = match controller.connect() {
+    let (channel_tx, response_tx) = match controller.connect() {
         Ok(channels) => channels,
         Err(e) => {
             eprintln!("Unable to connect to the controller: {}", e);
@@ -35,7 +38,8 @@ async fn main() {
     };
 
     let handle = spawn(async move {
-        while let Ok(response) = log_rx.recv().await {
+        let mut rx = response_tx.subscribe();
+        while let Ok(response) = rx.recv().await {
             let response: String = response.into();
             println!("{}", response);
         }

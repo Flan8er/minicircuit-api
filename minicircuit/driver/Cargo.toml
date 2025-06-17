@@ -10,6 +10,7 @@ serialport = { version = "4.7.0", default-features = false, features = [
 ] }
 tokio = { version = "1", features = ["full"], optional = true }
 serde = { version = "1.0", features = ["derive"] }
+dotenv = "0.15.0"
 
 [features]
 default = ["driver"]

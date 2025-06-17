@@ -1,6 +1,6 @@
 use serialport::{available_ports, Error, SerialPort, SerialPortInfo};
 
-use super::properties::{ProductId, TargetProperties, VendorId};
+use minicircuit_commands::properties::{ProductId, TargetProperties, VendorId};
 
 /// Used for connecting directly to the supplied port in the target properties.
 ///
@@ -99,20 +99,37 @@ pub fn autodetect_sg_port(
         .filter(|port| {
             if let serialport::SerialPortType::UsbPort(usb_info) = &port.port_type {
                 let vendor_id: u16 = vendor_id.clone().into();
-                let product_id: u16 = product_id.clone().into();
+                let _product_id: u16 = product_id.clone().into();
 
                 let Some(product) = usb_info.clone().product else {
                     return false;
                 };
 
                 // The filter requirement for returning the port is that the product and vendor ids match the requested ids.
-                usb_info.vid == vendor_id
-                    && usb_info.pid == product_id
-                    && port.port_name.contains("tty")
-                    && !product.contains("UART")
+                let matches_vid_pid = usb_info.vid == vendor_id;
+                let not_uart = !product.contains("UART");
+                let name_valid = if cfg!(target_os = "linux") || cfg!(target_os = "macos") {
+                    port.port_name.contains("tty")
+                } else if cfg!(target_os = "windows") {
+                    port.port_name.to_lowercase().contains("com")
+                } else {
+                    false
+                };
+
+                matches_vid_pid && not_uart && name_valid
             } else {
                 false
             }
         })
         .collect())
+}
+
+pub fn print_available_ports() {
+    // Get a list of available coms ports.
+    let available_ports = match available_ports() {
+        Ok(ports) => ports,
+        Err(_) => return,
+    };
+
+    println!("All available ports are {:#?}", available_ports)
 }

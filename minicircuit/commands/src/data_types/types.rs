@@ -1,31 +1,67 @@
-use std::fmt::{Display, Formatter, Result};
-
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter, Result};
+use std::ops::{Add, Div, Mul, Sub};
+use std::str::FromStr;
 
 // --------------------------------------------------------------- //
 //                                                                 //
 // --------------------------Frequency---------------------------- //
 //                                                                 //
 // --------------------------------------------------------------- //
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Copy)]
 pub struct Frequency {
     /// Typical values are in MHz.
     pub frequency: u16,
 }
+
 impl Frequency {
-    /// Creates a new frequency operator in units of MHz.
     pub fn new(frequency: u16) -> Self {
         Self { frequency }
     }
 }
-impl Into<u16> for Frequency {
-    fn into(self) -> u16 {
-        self.frequency
+
+impl FromStr for Frequency {
+    type Err = String;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s.trim().parse::<u16>() {
+            Ok(num) => Ok(Frequency::new(num)),
+            Err(_) => Err(format!("Invalid frequency format: '{}'", s)),
+        }
     }
 }
+
+impl From<Frequency> for u16 {
+    fn from(f: Frequency) -> u16 {
+        f.frequency
+    }
+}
+
 impl Display for Frequency {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", self.frequency)
+    }
+}
+
+impl Add for Frequency {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
+        Frequency::new(self.frequency.wrapping_add(other.frequency))
+    }
+}
+
+impl Sub for Frequency {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Frequency::new(self.frequency.wrapping_sub(other.frequency))
+    }
+}
+
+impl From<u16> for Frequency {
+    fn from(value: u16) -> Self {
+        Self::new(value)
     }
 }
 
@@ -64,7 +100,7 @@ impl Display for Channel {
 // -----------------------------Watt------------------------------ //
 //                                                                 //
 // --------------------------------------------------------------- //
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Watt {
     pub power: f32,
 }
@@ -90,6 +126,56 @@ impl From<Dbm> for Watt {
         let converted = (10.0_f32.powf(dbm_value / 10.0_f32)) / 1000.0_f32;
 
         Watt::new(converted)
+    }
+}
+impl Add for Watt {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
+        Watt::new(self.power + other.power)
+    }
+}
+
+impl Sub for Watt {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Watt::new(self.power - other.power)
+    }
+}
+
+impl Mul<f32> for Watt {
+    type Output = Self;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Watt::new(self.power * rhs)
+    }
+}
+
+impl Mul<Watt> for f32 {
+    type Output = Watt;
+
+    fn mul(self, rhs: Watt) -> Self::Output {
+        Watt::new(self * rhs.power)
+    }
+}
+
+impl Div<f32> for Watt {
+    type Output = Self;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        Watt::new(self.power / rhs)
+    }
+}
+
+impl FromStr for Watt {
+    type Err = String;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s.trim().parse::<f32>() {
+            Ok(num) => Ok(Watt::new(num)),
+            Err(_) => Err(format!("Invalid power format: '{}'", s)),
+        }
     }
 }
 
@@ -265,29 +351,51 @@ impl Default for Seconds {
 // ----------------------------Phase------------------------------ //
 //                                                                 //
 // --------------------------------------------------------------- //
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Phase {
     /// Values are in degrees.
-    pub phase: u16,
+    pub phase: i16,
 }
 impl Phase {
     /// Creates a new phase operator in units of degrees.
-    ///
-    /// Valid values are between 0 and 359.
-    pub fn new(phase: u16) -> Self {
-        Self {
-            phase: phase.clamp(0, 359),
-        }
+    pub fn new(phase: i16) -> Self {
+        Self { phase }
     }
 }
-impl Into<u16> for Phase {
-    fn into(self) -> u16 {
+impl Into<i16> for Phase {
+    fn into(self) -> i16 {
         self.phase
     }
 }
 impl Display for Phase {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", self.phase)
+    }
+}
+impl Add for Phase {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
+        Phase::new(self.phase.wrapping_add(other.phase))
+    }
+}
+
+impl Sub for Phase {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Phase::new(self.phase.wrapping_sub(other.phase))
+    }
+}
+
+impl FromStr for Phase {
+    type Err = String;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s.trim().parse::<i16>() {
+            Ok(num) => Ok(Phase::new(num)),
+            Err(_) => Err(format!("Invalid phase format: '{}'", s)),
+        }
     }
 }
 
