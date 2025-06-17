@@ -106,13 +106,31 @@ pub fn autodetect_sg_port(
                 };
 
                 // The filter requirement for returning the port is that the product and vendor ids match the requested ids.
-                usb_info.vid == vendor_id
-                    && usb_info.pid == product_id
-                    && port.port_name.contains("tty")
-                    && !product.contains("UART")
+                let matches_vid_pid = usb_info.vid == vendor_id;
+                let not_uart = !product.contains("UART");
+                let name_valid = if cfg!(target_os = "linux") || cfg!(target_os = "macos") {
+                    port.port_name.contains("tty")
+                } else if cfg!(target_os = "windows") {
+                    port.port_name.to_lowercase().contains("com")
+                } else {
+                    false
+                };
+
+                matches_vid_pid && not_uart && name_valid
+
             } else {
                 false
             }
         })
         .collect())
+}
+
+pub fn print_available_ports() {
+    // Get a list of available coms ports.
+    let available_ports = match available_ports() {
+        Ok(ports) => ports,
+        Err(_) => return,
+    };
+
+    println!("All available ports are {:#?}", available_ports)
 }

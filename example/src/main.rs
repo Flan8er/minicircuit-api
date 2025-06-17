@@ -4,10 +4,14 @@ use minicircuit_commands::{
     basic::frequency::{GetFrequency, SetFrequency},
     command::{Command, Message, Priority},
 };
-use minicircuit_driver::{driver::MiniCircuitDriver, properties::TargetProperties};
+use minicircuit_driver::{
+    connection::print_available_ports, driver::MiniCircuitDriver, properties::TargetProperties,
+};
 
 #[tokio::main]
 async fn main() {
+    print_available_ports();
+
     // Define the properties of the signal generator you are working with.
     let target_properties = TargetProperties::default();
 

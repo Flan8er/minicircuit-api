@@ -63,7 +63,7 @@ impl TargetProperties {
 impl Default for TargetProperties {
     fn default() -> Self {
         return Self {
-            port: Some(String::from("/dev/tty.usbserial-FTBXKGR7")),
+            port: None, // "/dev/tty.usbserial-FTBXKGR7"
             vendor_id: VendorId::default(),
             product_id: ProductId::default(),
             baud_rate: BaudRate::default(),
@@ -94,7 +94,7 @@ impl Default for VendorId {
     fn default() -> Self {
         // Possible other values:
         // pub const TARGET_VENDOR_ID: u16 = 8137;
-        Self { vendor_id: 1027 }
+        Self { vendor_id: 8137 }
     }
 }
 
@@ -116,6 +116,6 @@ impl Default for ProductId {
     fn default() -> Self {
         // Possible other values:
         // pub const TARGET_PRODUCT_ID: u16 = 131;
-        Self { product_id: 24577 }
+        Self { product_id: 131 }
     }
 }

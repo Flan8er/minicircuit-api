@@ -1,2 +1,3 @@
 [workspace]
-members = ["example", "minicircuit/commands", "minicircuit/driver"]
+members = ["example", "minicircuit/commands", "minicircuit/driver", "minicircuit/simulate"]
+resolver = "2"

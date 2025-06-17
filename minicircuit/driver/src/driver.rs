@@ -90,19 +90,36 @@ impl MiniCircuitDriver {
     ) -> Result<(mpsc::Sender<Message>, broadcast::Sender<Response>), Error> {
         let properties_clone = self.properties.clone();
 
-        // Get a list of ports that match the vendor and product ids with those of the target properties.
+        // Try to get a list of ports that match the vendor and product ids
         let signal_generators =
             match autodetect_sg_port(properties_clone.vendor_id, properties_clone.product_id) {
                 Ok(list_of_sg) => list_of_sg,
-                Err(e) => return Err(e),
+                Err(e) => {
+                    // If autodetection fails and we have a specified port, try to use that instead
+                    if let Some(port_name) = &properties_clone.port {
+                        println!(
+                            "Autodetection failed: {}. Falling back to specified port: {}",
+                            e, port_name
+                        );
+                        return self.port_connect();
+                    } else {
+                        return Err(e);
+                    }
+                }
             };
 
         // Verify a port was detected.
         if signal_generators.is_empty() {
-            return Err(Error::new(
-                serialport::ErrorKind::NoDevice,
-                "Unable to detect device matching defined properties.",
-            ));
+            // If no ports were detected but we have a specified port, try to use that instead
+            if let Some(port_name) = &properties_clone.port {
+                println!("No devices detected matching defined properties. Falling back to specified port: {}", port_name);
+                return self.port_connect();
+            } else {
+                return Err(Error::new(
+                    serialport::ErrorKind::NoDevice,
+                    "Unable to detect device matching defined properties.",
+                ));
+            }
         }
 
         // Connect to the first port that matches the requirements.
@@ -147,7 +164,7 @@ impl MiniCircuitDriver {
 
     pub fn port_connect(
         &mut self,
-    ) -> Result<(mpsc::Sender<Message>, broadcast::Receiver<Response>), Error> {
+    ) -> Result<(mpsc::Sender<Message>, broadcast::Sender<Response>), Error> {
         let properties_clone = self.properties.clone();
 
         let Some(port_name) = properties_clone.port else {
@@ -173,7 +190,7 @@ impl MiniCircuitDriver {
         let port = Arc::new(Mutex::new(port));
 
         // Create a channel that will be used by the driver to deliver responses from the commands back to the caller.
-        let (channel_tx, channel_rx) = broadcast::channel::<Response>(100);
+        let (channel_tx, _channel_rx) = broadcast::channel::<Response>(100);
         // Create a queue that can be used by the driver for receiving commands.
         let (queue_tx, queue_rx) = mpsc::channel::<Message>();
 
@@ -185,7 +202,7 @@ impl MiniCircuitDriver {
         self.queue_handle = Some(spawn_queue_loop(queue_rx, port_clone, channel_tx.clone()));
 
         // Return the queue sender and response receiver.
-        Ok((queue_tx, channel_rx))
+        Ok((queue_tx, channel_tx))
     }
 }
 
