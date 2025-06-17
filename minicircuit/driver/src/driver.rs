@@ -1,6 +1,5 @@
 use std::sync::{mpsc, Arc};
 
-use serde::{Deserialize, Serialize};
 use serialport::{Error, SerialPort};
 use tokio::sync::{broadcast, Mutex};
 
@@ -88,7 +87,7 @@ impl MiniCircuitDriver {
 
     pub fn connect(
         &mut self,
-    ) -> Result<(mpsc::Sender<Message>, broadcast::Receiver<Response>), Error> {
+    ) -> Result<(mpsc::Sender<Message>, broadcast::Sender<Response>), Error> {
         let properties_clone = self.properties.clone();
 
         // Get a list of ports that match the vendor and product ids with those of the target properties.
@@ -131,7 +130,7 @@ impl MiniCircuitDriver {
         let port = Arc::new(Mutex::new(port));
 
         // Create a channel that will be used by the driver to deliver responses from the commands back to the caller.
-        let (channel_tx, channel_rx) = broadcast::channel::<Response>(100);
+        let (channel_tx, _channel_rx) = broadcast::channel::<Response>(100);
         // Create a queue that can be used by the driver for receiving commands.
         let (queue_tx, queue_rx) = mpsc::channel::<Message>();
 
@@ -142,8 +141,8 @@ impl MiniCircuitDriver {
         // Store the handle so the thread doesn't get dropped.
         self.queue_handle = Some(spawn_queue_loop(queue_rx, port_clone, channel_tx.clone()));
 
-        // Return the queue sender and response receiver.
-        Ok((queue_tx, channel_rx))
+        // Return the queue sender and response sender (to be subscribed to).
+        Ok((queue_tx, channel_tx))
     }
 
     pub fn port_connect(
