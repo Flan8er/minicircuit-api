@@ -6,6 +6,7 @@ pub mod dll;
 pub mod error;
 pub mod information;
 pub mod manual;
+pub mod properties;
 pub mod pwm;
 pub mod soa;
 pub mod system;

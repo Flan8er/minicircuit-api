@@ -38,6 +38,7 @@ use minicircuit_commands::{
         magnitude::{GetMagnitudeResponse, SetMagnitudeResponse},
         power::{GetISCPowerOutputResponse, SetISCPowerOutputResponse},
     },
+    properties::*,
     pwm::{
         duty_cycle::{GetPWMDutyCycleResponse, SetPWMDutyCycleResponse},
         frequency::SetPWMFrequencyResponse,
@@ -67,9 +68,7 @@ use minicircuit_commands::{
     },
 };
 
-use super::{
-    communication::write_read, connection::autodetect_sg_port, properties::TargetProperties,
-};
+use super::{communication::write_read, connection::autodetect_sg_port};
 
 #[derive(Debug)]
 pub struct MiniCircuitDriver {
