@@ -1,10 +1,7 @@
-use std::sync::{mpsc, Arc};
+use std::sync::Arc;
 
 use serialport::{Error, SerialPort};
-use tokio::{
-    select,
-    sync::{broadcast, oneshot, Mutex},
-};
+use tokio::sync::{broadcast, Mutex};
 
 use minicircuit_commands::{
     basic::{
@@ -41,6 +38,7 @@ use minicircuit_commands::{
         magnitude::{GetMagnitudeResponse, SetMagnitudeResponse},
         power::{GetISCPowerOutputResponse, SetISCPowerOutputResponse},
     },
+    prelude::MWError,
     properties::*,
     pwm::{
         duty_cycle::{GetPWMDutyCycleResponse, SetPWMDutyCycleResponse},
@@ -407,14 +405,20 @@ fn send_command(command: Command, port: &mut dyn SerialPort) -> Response {
             // Collect the resulting response of sending the command.
             let command_response: Response = match write_read(port, command) {
                 Ok(sg_response) => {
-                    let parse_result: Result<SetFrequencyResponse, _> = sg_response.try_into();
-
-                    match parse_result {
-                        Ok(formatted_response) => {
-                            Response::SetFrequencyResponse(formatted_response)
-                        }
-                        Err(e) => Response::MWError(e),
+                    if sg_response.contains("ERR") {
+                        let e: MWError = sg_response.into();
+                        Response::MWError(e)
+                    } else {
+                        Response::SetFrequencyResponse(set_frequency.frequency)
                     }
+                    // let parse_result: Result<SetFrequencyResponse, _> = sg_response.try_into();
+                    //
+                    // match parse_result {
+                    //     Ok(formatted_response) => {
+                    //         Response::SetFrequencyResponse(formatted_response)
+                    //     }
+                    //     Err(e) => Response::MWError(e),
+                    // }
                 }
                 // Return the command (for backtracking the source of issue) and the error description
                 Err(e) => {
@@ -461,12 +465,21 @@ fn send_command(command: Command, port: &mut dyn SerialPort) -> Response {
             // Collect the resulting response of sending the command.
             let command_response: Response = match write_read(port, command) {
                 Ok(sg_response) => {
-                    let parse_result: Result<SetRFOutputResponse, _> = sg_response.try_into();
-
-                    match parse_result {
-                        Ok(formatted_response) => Response::SetRFOutputResponse(formatted_response),
-                        Err(e) => Response::MWError(e),
+                    if sg_response.contains("ERR") {
+                        let e: MWError = sg_response.into();
+                        Response::MWError(e)
+                    } else {
+                        Response::SetRFOutputResponse(set_rfoutput.enabled)
                     }
+
+                    // let parse_result: Result<SetRFOutputResponse, _> = sg_response.try_into();
+                    //
+                    // match parse_result {
+                    //     Ok(formatted_response) => {
+                    //         Response::SetRFOutputResponse(formatted_response, set_rfoutput.enabled)
+                    //     }
+                    //     Err(e) => Response::MWError(e),
+                    // }
                 }
                 // Return the command (for backtracking the source of issue) and the error description
                 Err(e) => {
@@ -513,12 +526,19 @@ fn send_command(command: Command, port: &mut dyn SerialPort) -> Response {
             // Collect the resulting response of sending the command.
             let command_response: Response = match write_read(port, command) {
                 Ok(sg_response) => {
-                    let parse_result: Result<SetPhaseResponse, _> = sg_response.try_into();
-
-                    match parse_result {
-                        Ok(formatted_response) => Response::SetPhaseResponse(formatted_response),
-                        Err(e) => Response::MWError(e),
+                    if sg_response.contains("ERR") {
+                        let e: MWError = sg_response.into();
+                        Response::MWError(e)
+                    } else {
+                        Response::SetPhaseResponse(set_phase.phase)
                     }
+
+                    // let parse_result: Result<SetPhaseResponse, _> = sg_response.try_into();
+                    //
+                    // match parse_result {
+                    //     Ok(formatted_response) => Response::SetPhaseResponse(formatted_response),
+                    //     Err(e) => Response::MWError(e),
+                    // }
                 }
                 // Return the command (for backtracking the source of issue) and the error description
                 Err(e) => {
@@ -632,15 +652,21 @@ fn send_command(command: Command, port: &mut dyn SerialPort) -> Response {
             // Collect the resulting response of sending the command.
             let command_response: Response = match write_read(port, command) {
                 Ok(sg_response) => {
-                    let parse_result: Result<SetPAPowerSetpointWattResponse, _> =
-                        sg_response.try_into();
-
-                    match parse_result {
-                        Ok(formatted_response) => {
-                            Response::SetPAPowerSetpointWattResponse(formatted_response)
-                        }
-                        Err(e) => Response::MWError(e),
+                    if sg_response.contains("ERR") {
+                        let e: MWError = sg_response.into();
+                        Response::MWError(e)
+                    } else {
+                        Response::SetPAPowerSetpointWattResponse(set_papower_setpoint_watt.power)
                     }
+                    // let parse_result: Result<SetPAPowerSetpointWattResponse, _> =
+                    //     sg_response.try_into();
+                    //
+                    // match parse_result {
+                    //     Ok(formatted_response) => {
+                    //         Response::SetPAPowerSetpointWattResponse(formatted_response)
+                    //     }
+                    //     Err(e) => Response::MWError(e),
+                    // }
                 }
                 // Return the command (for backtracking the source of issue) and the error description
                 Err(e) => {

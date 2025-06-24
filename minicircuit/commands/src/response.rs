@@ -1,4 +1,7 @@
-use crate::data_types::errors::{MWError, ReadWriteError};
+use crate::{
+    data_types::errors::{MWError, ReadWriteError},
+    prelude::{Frequency, Phase, Watt},
+};
 
 use super::{
     basic::{
@@ -69,16 +72,16 @@ pub enum Response {
     GetPACurrentResponse(GetPACurrentResponse),
     GetPAPowerDBMResponse(GetPAPowerDBMResponse),
     GetPAPowerWattResponse(GetPAPowerWattResponse),
-    GetFrequencyResponse(GetFrequencyResponse),
-    SetFrequencyResponse(SetFrequencyResponse),
+    GetFrequencyResponse(GetFrequencyResponse, Frequency),
+    SetFrequencyResponse(Frequency),
     GetRFOutputResponse(GetRFOutputResponse),
-    SetRFOutputResponse(SetRFOutputResponse),
+    SetRFOutputResponse(bool),
     GetPhaseResponse(GetPhaseResponse),
-    SetPhaseResponse(SetPhaseResponse),
+    SetPhaseResponse(Phase),
     GetPAPowerSetpointDBMResponse(GetPAPowerSetpointDBMResponse),
     GetPAPowerSetpointWattResponse(GetPAPowerSetpointWattResponse),
     SetPAPowerSetpointDBMResponse(SetPAPowerSetpointDBMResponse),
-    SetPAPowerSetpointWattResponse(SetPAPowerSetpointWattResponse),
+    SetPAPowerSetpointWattResponse(Watt),
     GetPATempResponse(GetPATempResponse),
     GetPAVoltageResponse(GetPAVoltageResponse),
     GetDLLConfigResponse(GetDLLConfigResponse),
