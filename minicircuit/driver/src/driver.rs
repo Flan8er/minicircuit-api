@@ -200,7 +200,7 @@ impl MiniCircuitDriver {
         // Store the handle so the thread doesn't get dropped
         self.queue_handle = Some(spawn_queue_loop(queue_rx, port_clone, channel_tx.clone()));
 
-        // Return the queue sender and response receiver.
+        // Return the queue sender and response sender.
         Ok((queue_tx, channel_tx))
     }
 }
@@ -234,7 +234,7 @@ fn spawn_queue_loop(
             }
 
             // Rest for the CPU.
-            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         }
     })
 }
