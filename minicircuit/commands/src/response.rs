@@ -1,4 +1,3 @@
-use std::fmt::format;
 
 use crate::{
     data_types::errors::{MWError, ReadWriteError},
@@ -10,12 +9,12 @@ use super::{
         adc::GetPAPowerADCResponse,
         current::GetPACurrentResponse,
         forward_reflected::{GetPAPowerDBMResponse, GetPAPowerWattResponse},
-        frequency::{GetFrequencyResponse, SetFrequencyResponse},
-        output::{GetRFOutputResponse, SetRFOutputResponse},
-        phase::{GetPhaseResponse, SetPhaseResponse},
+        frequency::GetFrequencyResponse,
+        output::GetRFOutputResponse,
+        phase::GetPhaseResponse,
         setpoint::{
             GetPAPowerSetpointDBMResponse, GetPAPowerSetpointWattResponse,
-            SetPAPowerSetpointDBMResponse, SetPAPowerSetpointWattResponse,
+            SetPAPowerSetpointDBMResponse,
         },
         temperature::GetPATempResponse,
         voltage::GetPAVoltageResponse,

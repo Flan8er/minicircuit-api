@@ -1,7 +1,5 @@
-use log::{debug, info};
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
+use log::info;
+use std::time::Instant;
 
 use minicircuit_commands::data_types::types::Channel;
 
