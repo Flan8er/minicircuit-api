@@ -72,7 +72,7 @@ pub enum Response {
     GetPACurrentResponse(GetPACurrentResponse),
     GetPAPowerDBMResponse(GetPAPowerDBMResponse),
     GetPAPowerWattResponse(GetPAPowerWattResponse),
-    GetFrequencyResponse(GetFrequencyResponse, Frequency),
+    GetFrequencyResponse(GetFrequencyResponse),
     SetFrequencyResponse(Frequency),
     GetRFOutputResponse(GetRFOutputResponse),
     SetRFOutputResponse(bool),
