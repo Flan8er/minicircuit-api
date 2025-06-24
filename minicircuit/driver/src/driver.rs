@@ -1,7 +1,10 @@
 use std::sync::{mpsc, Arc};
 
 use serialport::{Error, SerialPort};
-use tokio::sync::{broadcast, Mutex};
+use tokio::{
+    select,
+    sync::{broadcast, oneshot, Mutex},
+};
 
 use minicircuit_commands::{
     basic::{
@@ -86,7 +89,13 @@ impl MiniCircuitDriver {
 
     pub fn connect(
         &mut self,
-    ) -> Result<(mpsc::Sender<Message>, broadcast::Sender<Response>), Error> {
+    ) -> Result<
+        (
+            tokio::sync::mpsc::UnboundedSender<Message>,
+            broadcast::Sender<Response>,
+        ),
+        Error,
+    > {
         let properties_clone = self.properties.clone();
 
         // Try to get a list of ports that match the vendor and product ids
@@ -148,7 +157,7 @@ impl MiniCircuitDriver {
         // Create a channel that will be used by the driver to deliver responses from the commands back to the caller.
         let (channel_tx, _channel_rx) = broadcast::channel::<Response>(100);
         // Create a queue that can be used by the driver for receiving commands.
-        let (queue_tx, queue_rx) = mpsc::channel::<Message>();
+        let (queue_tx, queue_rx) = tokio::sync::mpsc::unbounded_channel::<Message>();
 
         // Clone Arc pointers for the thread.
         let port_clone = Arc::clone(&port);
@@ -163,7 +172,13 @@ impl MiniCircuitDriver {
 
     pub fn port_connect(
         &mut self,
-    ) -> Result<(mpsc::Sender<Message>, broadcast::Sender<Response>), Error> {
+    ) -> Result<
+        (
+            tokio::sync::mpsc::UnboundedSender<Message>,
+            broadcast::Sender<Response>,
+        ),
+        Error,
+    > {
         let properties_clone = self.properties.clone();
 
         let Some(port_name) = properties_clone.port else {
@@ -191,7 +206,7 @@ impl MiniCircuitDriver {
         // Create a channel that will be used by the driver to deliver responses from the commands back to the caller.
         let (channel_tx, _channel_rx) = broadcast::channel::<Response>(100);
         // Create a queue that can be used by the driver for receiving commands.
-        let (queue_tx, queue_rx) = mpsc::channel::<Message>();
+        let (queue_tx, queue_rx) = tokio::sync::mpsc::unbounded_channel::<Message>();
 
         // Clone Arc pointers for the thread.
         let port_clone = Arc::clone(&port);
@@ -206,7 +221,7 @@ impl MiniCircuitDriver {
 }
 
 fn spawn_queue_loop(
-    queue_rx: std::sync::mpsc::Receiver<Message>,
+    mut queue_rx: tokio::sync::mpsc::UnboundedReceiver<Message>,
     port: Arc<tokio::sync::Mutex<Box<dyn SerialPort>>>,
     channel_tx: tokio::sync::broadcast::Sender<Response>,
 ) -> tokio::task::JoinHandle<()> {
@@ -215,7 +230,8 @@ fn spawn_queue_loop(
             // Define a vector for the queue so that it can be manipulated freely.
             let mut queue = Vec::new();
             while let Ok(msg) = queue_rx.try_recv() {
-                queue.push(msg);
+                queue.push(msg.clone());
+                println!("{:?}", msg);
             }
 
             // Sort the messages in the queue by priority.
@@ -233,8 +249,8 @@ fn spawn_queue_loop(
                 let _ = channel_tx.send(response);
             }
 
-            // Rest for the CPU.
-            // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            // Await in order to allow abort
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
         }
     })
 }
