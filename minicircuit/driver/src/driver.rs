@@ -229,7 +229,6 @@ fn spawn_queue_loop(
             let mut queue = Vec::new();
             while let Ok(msg) = queue_rx.try_recv() {
                 queue.push(msg.clone());
-                println!("{:?}", msg);
             }
 
             // Sort the messages in the queue by priority.
