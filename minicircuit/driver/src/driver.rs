@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use serialport::{Error, SerialPort};
-use tokio::sync::{broadcast, Mutex};
+use tokio::{
+    select,
+    sync::{broadcast, oneshot, Mutex},
+};
 
 use minicircuit_commands::{
     basic::{
