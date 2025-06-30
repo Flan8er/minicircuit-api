@@ -1,3 +1,4 @@
+#[cfg(feature = "stores")]
 use reactive_stores::Patch;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result};
