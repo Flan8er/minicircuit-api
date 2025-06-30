@@ -1,3 +1,4 @@
+use reactive_stores::Patch;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result};
 use std::ops::{Add, Div, Mul, Sub};
@@ -9,6 +10,7 @@ use std::str::FromStr;
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Copy)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct Frequency {
     /// Typical values are in MHz.
     pub frequency: u16,
@@ -101,6 +103,7 @@ impl Display for Channel {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct Watt {
     pub power: f32,
 }
@@ -185,6 +188,7 @@ impl FromStr for Watt {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct Dbm {
     pub power: f32,
 }
@@ -219,6 +223,7 @@ impl From<Watt> for Dbm {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct Adc {
     pub power: f32,
 }
@@ -246,6 +251,7 @@ impl Display for Adc {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct Amperes {
     pub current: f32,
 }
@@ -271,6 +277,7 @@ impl Display for Amperes {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct Volts {
     pub voltage: f32,
 }
@@ -296,6 +303,7 @@ impl Display for Volts {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 /// Units of degC.
 pub struct Temperature {
     pub temperature: u8,
@@ -322,6 +330,7 @@ impl Display for Temperature {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct Seconds {
     pub seconds: u64,
 }
@@ -352,6 +361,7 @@ impl Default for Seconds {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct Phase {
     /// Values are in degrees.
     pub phase: i16,
@@ -405,6 +415,7 @@ impl FromStr for Phase {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct Attenuation {
     /// Values are in dB.
     pub attenuation: f32,
@@ -440,6 +451,7 @@ impl Display for Attenuation {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct Percentage {
     pub percentage: u8,
 }
@@ -467,6 +479,7 @@ impl Display for Percentage {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct CorrectionFactor {
     pub correction_factor: u8,
 }
@@ -492,6 +505,7 @@ impl std::fmt::Display for CorrectionFactor {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct MainDelay {
     pub main_delay: u16,
 }
@@ -517,6 +531,7 @@ impl std::fmt::Display for MainDelay {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct Threshold {
     pub threshold: f32,
 }
@@ -542,6 +557,7 @@ impl std::fmt::Display for Threshold {
 //                                                                 //
 // --------------------------------------------------------------- //
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "stores", derive(Patch))]
 pub struct BaudRate {
     pub baud_rate: u32,
 }

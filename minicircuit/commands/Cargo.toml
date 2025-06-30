@@ -8,3 +8,9 @@ serde = { version = "1.0", features = ["derive"] }
 serialport = { version = "4.7.0", default-features = false, features = [
     "serde",
 ] }
+
+reactive_stores = { version = "0.1.7", optional = true }
+
+[features]
+default = []
+stores = ["dep:reactive_stores"]
