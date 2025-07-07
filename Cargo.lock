@@ -226,6 +226,7 @@ dependencies = [
  "log",
  "minicircuit_commands",
  "minicircuit_driver",
+ "regex",
  "serde",
  "serde_json",
  "serialport",
