@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-// use super::data_types::types::BaudRate;
-use minicircuit_commands::data_types::types::BaudRate;
+use crate::prelude::BaudRate;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// The properties that are used for automatically detecting and

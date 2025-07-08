@@ -1,20 +1,22 @@
-use std::sync::{mpsc, Arc};
+use std::sync::Arc;
 
-use serde::{Deserialize, Serialize};
 use serialport::{Error, SerialPort};
-use tokio::sync::{broadcast, Mutex};
+use tokio::{
+    select,
+    sync::{broadcast, oneshot, Mutex},
+};
 
 use minicircuit_commands::{
     basic::{
         adc::GetPAPowerADCResponse,
         current::GetPACurrentResponse,
         forward_reflected::{GetPAPowerDBMResponse, GetPAPowerWattResponse},
-        frequency::{GetFrequencyResponse, SetFrequencyResponse},
-        output::{GetRFOutputResponse, SetRFOutputResponse},
-        phase::{GetPhaseResponse, SetPhaseResponse},
+        frequency::GetFrequencyResponse,
+        output::GetRFOutputResponse,
+        phase::GetPhaseResponse,
         setpoint::{
             GetPAPowerSetpointDBMResponse, GetPAPowerSetpointWattResponse,
-            SetPAPowerSetpointDBMResponse, SetPAPowerSetpointWattResponse,
+            SetPAPowerSetpointDBMResponse,
         },
         temperature::GetPATempResponse,
         voltage::GetPAVoltageResponse,
@@ -39,6 +41,8 @@ use minicircuit_commands::{
         magnitude::{GetMagnitudeResponse, SetMagnitudeResponse},
         power::{GetISCPowerOutputResponse, SetISCPowerOutputResponse},
     },
+    prelude::MWError,
+    properties::*,
     pwm::{
         duty_cycle::{GetPWMDutyCycleResponse, SetPWMDutyCycleResponse},
         frequency::SetPWMFrequencyResponse,
@@ -68,9 +72,7 @@ use minicircuit_commands::{
     },
 };
 
-use super::{
-    communication::write_read, connection::autodetect_sg_port, properties::TargetProperties,
-};
+use super::{communication::write_read, connection::autodetect_sg_port};
 
 #[derive(Debug)]
 pub struct MiniCircuitDriver {
@@ -88,7 +90,13 @@ impl MiniCircuitDriver {
 
     pub fn connect(
         &mut self,
-    ) -> Result<(mpsc::Sender<Message>, broadcast::Sender<Response>), Error> {
+    ) -> Result<
+        (
+            tokio::sync::mpsc::UnboundedSender<Message>,
+            broadcast::Sender<Response>,
+        ),
+        Error,
+    > {
         let properties_clone = self.properties.clone();
 
         // Try to get a list of ports that match the vendor and product ids
@@ -148,9 +156,9 @@ impl MiniCircuitDriver {
         let port = Arc::new(Mutex::new(port));
 
         // Create a channel that will be used by the driver to deliver responses from the commands back to the caller.
-        let (channel_tx, channel_rx) = broadcast::channel::<Response>(100);
+        let (channel_tx, _channel_rx) = broadcast::channel::<Response>(100);
         // Create a queue that can be used by the driver for receiving commands.
-        let (queue_tx, queue_rx) = mpsc::channel::<Message>();
+        let (queue_tx, queue_rx) = tokio::sync::mpsc::unbounded_channel::<Message>();
 
         // Clone Arc pointers for the thread.
         let port_clone = Arc::clone(&port);
@@ -159,13 +167,19 @@ impl MiniCircuitDriver {
         // Store the handle so the thread doesn't get dropped.
         self.queue_handle = Some(spawn_queue_loop(queue_rx, port_clone, channel_tx.clone()));
 
-        // Return the queue sender and response receiver.
-        Ok((queue_tx, channel_rx))
+        // Return the queue sender and response sender (to be subscribed to).
+        Ok((queue_tx, channel_tx))
     }
 
     pub fn port_connect(
         &mut self,
-    ) -> Result<(mpsc::Sender<Message>, broadcast::Sender<Response>), Error> {
+    ) -> Result<
+        (
+            tokio::sync::mpsc::UnboundedSender<Message>,
+            broadcast::Sender<Response>,
+        ),
+        Error,
+    > {
         let properties_clone = self.properties.clone();
 
         let Some(port_name) = properties_clone.port else {
@@ -191,9 +205,9 @@ impl MiniCircuitDriver {
         let port = Arc::new(Mutex::new(port));
 
         // Create a channel that will be used by the driver to deliver responses from the commands back to the caller.
-        let (channel_tx, channel_rx) = broadcast::channel::<Response>(100);
+        let (channel_tx, _channel_rx) = broadcast::channel::<Response>(100);
         // Create a queue that can be used by the driver for receiving commands.
-        let (queue_tx, queue_rx) = mpsc::channel::<Message>();
+        let (queue_tx, queue_rx) = tokio::sync::mpsc::unbounded_channel::<Message>();
 
         // Clone Arc pointers for the thread.
         let port_clone = Arc::clone(&port);
@@ -202,13 +216,13 @@ impl MiniCircuitDriver {
         // Store the handle so the thread doesn't get dropped
         self.queue_handle = Some(spawn_queue_loop(queue_rx, port_clone, channel_tx.clone()));
 
-        // Return the queue sender and response receiver.
+        // Return the queue sender and response sender.
         Ok((queue_tx, channel_tx))
     }
 }
 
 fn spawn_queue_loop(
-    queue_rx: std::sync::mpsc::Receiver<Message>,
+    mut queue_rx: tokio::sync::mpsc::UnboundedReceiver<Message>,
     port: Arc<tokio::sync::Mutex<Box<dyn SerialPort>>>,
     channel_tx: tokio::sync::broadcast::Sender<Response>,
 ) -> tokio::task::JoinHandle<()> {
@@ -217,7 +231,7 @@ fn spawn_queue_loop(
             // Define a vector for the queue so that it can be manipulated freely.
             let mut queue = Vec::new();
             while let Ok(msg) = queue_rx.try_recv() {
-                queue.push(msg);
+                queue.push(msg.clone());
             }
 
             // Sort the messages in the queue by priority.
@@ -235,8 +249,8 @@ fn spawn_queue_loop(
                 let _ = channel_tx.send(response);
             }
 
-            // Rest for the CPU.
-            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            // Await in order to allow abort
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
         }
     })
 }
@@ -393,14 +407,20 @@ fn send_command(command: Command, port: &mut dyn SerialPort) -> Response {
             // Collect the resulting response of sending the command.
             let command_response: Response = match write_read(port, command) {
                 Ok(sg_response) => {
-                    let parse_result: Result<SetFrequencyResponse, _> = sg_response.try_into();
-
-                    match parse_result {
-                        Ok(formatted_response) => {
-                            Response::SetFrequencyResponse(formatted_response)
-                        }
-                        Err(e) => Response::MWError(e),
+                    if sg_response.contains("ERR") {
+                        let e: MWError = sg_response.into();
+                        Response::MWError(e)
+                    } else {
+                        Response::SetFrequencyResponse(set_frequency.frequency)
                     }
+                    // let parse_result: Result<SetFrequencyResponse, _> = sg_response.try_into();
+                    //
+                    // match parse_result {
+                    //     Ok(formatted_response) => {
+                    //         Response::SetFrequencyResponse(formatted_response)
+                    //     }
+                    //     Err(e) => Response::MWError(e),
+                    // }
                 }
                 // Return the command (for backtracking the source of issue) and the error description
                 Err(e) => {
@@ -447,12 +467,21 @@ fn send_command(command: Command, port: &mut dyn SerialPort) -> Response {
             // Collect the resulting response of sending the command.
             let command_response: Response = match write_read(port, command) {
                 Ok(sg_response) => {
-                    let parse_result: Result<SetRFOutputResponse, _> = sg_response.try_into();
-
-                    match parse_result {
-                        Ok(formatted_response) => Response::SetRFOutputResponse(formatted_response),
-                        Err(e) => Response::MWError(e),
+                    if sg_response.contains("ERR") {
+                        let e: MWError = sg_response.into();
+                        Response::MWError(e)
+                    } else {
+                        Response::SetRFOutputResponse(set_rfoutput.enabled)
                     }
+
+                    // let parse_result: Result<SetRFOutputResponse, _> = sg_response.try_into();
+                    //
+                    // match parse_result {
+                    //     Ok(formatted_response) => {
+                    //         Response::SetRFOutputResponse(formatted_response, set_rfoutput.enabled)
+                    //     }
+                    //     Err(e) => Response::MWError(e),
+                    // }
                 }
                 // Return the command (for backtracking the source of issue) and the error description
                 Err(e) => {
@@ -499,12 +528,19 @@ fn send_command(command: Command, port: &mut dyn SerialPort) -> Response {
             // Collect the resulting response of sending the command.
             let command_response: Response = match write_read(port, command) {
                 Ok(sg_response) => {
-                    let parse_result: Result<SetPhaseResponse, _> = sg_response.try_into();
-
-                    match parse_result {
-                        Ok(formatted_response) => Response::SetPhaseResponse(formatted_response),
-                        Err(e) => Response::MWError(e),
+                    if sg_response.contains("ERR") {
+                        let e: MWError = sg_response.into();
+                        Response::MWError(e)
+                    } else {
+                        Response::SetPhaseResponse(set_phase.phase)
                     }
+
+                    // let parse_result: Result<SetPhaseResponse, _> = sg_response.try_into();
+                    //
+                    // match parse_result {
+                    //     Ok(formatted_response) => Response::SetPhaseResponse(formatted_response),
+                    //     Err(e) => Response::MWError(e),
+                    // }
                 }
                 // Return the command (for backtracking the source of issue) and the error description
                 Err(e) => {
@@ -618,15 +654,21 @@ fn send_command(command: Command, port: &mut dyn SerialPort) -> Response {
             // Collect the resulting response of sending the command.
             let command_response: Response = match write_read(port, command) {
                 Ok(sg_response) => {
-                    let parse_result: Result<SetPAPowerSetpointWattResponse, _> =
-                        sg_response.try_into();
-
-                    match parse_result {
-                        Ok(formatted_response) => {
-                            Response::SetPAPowerSetpointWattResponse(formatted_response)
-                        }
-                        Err(e) => Response::MWError(e),
+                    if sg_response.contains("ERR") {
+                        let e: MWError = sg_response.into();
+                        Response::MWError(e)
+                    } else {
+                        Response::SetPAPowerSetpointWattResponse(set_papower_setpoint_watt.power)
                     }
+                    // let parse_result: Result<SetPAPowerSetpointWattResponse, _> =
+                    //     sg_response.try_into();
+                    //
+                    // match parse_result {
+                    //     Ok(formatted_response) => {
+                    //         Response::SetPAPowerSetpointWattResponse(formatted_response)
+                    //     }
+                    //     Err(e) => Response::MWError(e),
+                    // }
                 }
                 // Return the command (for backtracking the source of issue) and the error description
                 Err(e) => {

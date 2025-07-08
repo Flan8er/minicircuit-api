@@ -1,6 +1,6 @@
 use serialport::{available_ports, Error, SerialPort, SerialPortInfo};
 
-use super::properties::{ProductId, TargetProperties, VendorId};
+use minicircuit_commands::properties::{ProductId, TargetProperties, VendorId};
 
 /// Used for connecting directly to the supplied port in the target properties.
 ///
@@ -99,7 +99,7 @@ pub fn autodetect_sg_port(
         .filter(|port| {
             if let serialport::SerialPortType::UsbPort(usb_info) = &port.port_type {
                 let vendor_id: u16 = vendor_id.clone().into();
-                let product_id: u16 = product_id.clone().into();
+                let _product_id: u16 = product_id.clone().into();
 
                 let Some(product) = usb_info.clone().product else {
                     return false;
@@ -117,7 +117,6 @@ pub fn autodetect_sg_port(
                 };
 
                 matches_vid_pid && not_uart && name_valid
-
             } else {
                 false
             }

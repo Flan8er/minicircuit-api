@@ -1,16 +1,20 @@
-use crate::data_types::errors::{MWError, ReadWriteError};
+
+use crate::{
+    data_types::errors::{MWError, ReadWriteError},
+    prelude::{Frequency, Phase, Watt},
+};
 
 use super::{
     basic::{
         adc::GetPAPowerADCResponse,
         current::GetPACurrentResponse,
         forward_reflected::{GetPAPowerDBMResponse, GetPAPowerWattResponse},
-        frequency::{GetFrequencyResponse, SetFrequencyResponse},
-        output::{GetRFOutputResponse, SetRFOutputResponse},
-        phase::{GetPhaseResponse, SetPhaseResponse},
+        frequency::GetFrequencyResponse,
+        output::GetRFOutputResponse,
+        phase::GetPhaseResponse,
         setpoint::{
             GetPAPowerSetpointDBMResponse, GetPAPowerSetpointWattResponse,
-            SetPAPowerSetpointDBMResponse, SetPAPowerSetpointWattResponse,
+            SetPAPowerSetpointDBMResponse,
         },
         temperature::GetPATempResponse,
         voltage::GetPAVoltageResponse,
@@ -70,15 +74,15 @@ pub enum Response {
     GetPAPowerDBMResponse(GetPAPowerDBMResponse),
     GetPAPowerWattResponse(GetPAPowerWattResponse),
     GetFrequencyResponse(GetFrequencyResponse),
-    SetFrequencyResponse(SetFrequencyResponse),
+    SetFrequencyResponse(Frequency),
     GetRFOutputResponse(GetRFOutputResponse),
-    SetRFOutputResponse(SetRFOutputResponse),
+    SetRFOutputResponse(bool),
     GetPhaseResponse(GetPhaseResponse),
-    SetPhaseResponse(SetPhaseResponse),
+    SetPhaseResponse(Phase),
     GetPAPowerSetpointDBMResponse(GetPAPowerSetpointDBMResponse),
     GetPAPowerSetpointWattResponse(GetPAPowerSetpointWattResponse),
     SetPAPowerSetpointDBMResponse(SetPAPowerSetpointDBMResponse),
-    SetPAPowerSetpointWattResponse(SetPAPowerSetpointWattResponse),
+    SetPAPowerSetpointWattResponse(Watt),
     GetPATempResponse(GetPATempResponse),
     GetPAVoltageResponse(GetPAVoltageResponse),
     GetDLLConfigResponse(GetDLLConfigResponse),
@@ -150,10 +154,10 @@ impl Into<String> for Response {
                 )
             }
             Response::SetFrequencyResponse(set_frequency_response) => {
-                match set_frequency_response.result {
-                    Ok(_) => format!("The frequency was sucessfully set."),
-                    Err(e) => format!("An error occurred setting the frequency. \n{}", e),
-                }
+                format!(
+                    "The frequency was sucessfully set to {:?}.",
+                    set_frequency_response.frequency
+                )
             }
             Response::ReadWriteError(read_write_error) => {
                 format!(
@@ -195,25 +199,22 @@ impl Into<String> for Response {
                 };
                 format!("The RF output is currently {}.", enabled_response)
             }
-            Response::SetRFOutputResponse(set_rfoutput_response) => {
-                match set_rfoutput_response.result {
-                    Ok(_) => format!("The RF output mode was sucessfully set."),
-                    Err(e) => format!("An error occurred setting the RF output mode. \n{}", e),
-                }
-            }
+            Response::SetRFOutputResponse(set_rfoutput_response) => format!(
+                "The RF output mode was successfully set to {}",
+                set_rfoutput_response,
+            ),
             Response::GetPhaseResponse(get_phase_response) => {
                 format!(
                     "The ISC board's RF output phase is currently {}deg.",
                     get_phase_response.phase
                 )
             }
-            Response::SetPhaseResponse(set_phase_response) => match set_phase_response.result {
-                Ok(_) => format!("The ISC board's RF output phase was sucessfully set."),
-                Err(e) => format!(
-                    "An error occurred setting the ISC board's RF output phase. \n{}",
-                    e
-                ),
-            },
+            Response::SetPhaseResponse(set_phase_response) => {
+                format!(
+                    "The ISC board's RF output phase was sucessfully set to {}.",
+                    set_phase_response.phase
+                )
+            }
             Response::GetPAPowerSetpointDBMResponse(get_papower_setpoint_dbmresponse) => {
                 format!(
                     "The PA output power setpoint is currently {}dBm.",
@@ -236,13 +237,10 @@ impl Into<String> for Response {
                 }
             }
             Response::SetPAPowerSetpointWattResponse(set_papower_setpoint_watt_response) => {
-                match set_papower_setpoint_watt_response.result {
-                    Ok(_) => format!("The PA output power setpoint (W) was sucessfully set."),
-                    Err(e) => format!(
-                        "An error occurred setting the PA output power setpoint (W). \n{}",
-                        e
-                    ),
-                }
+                format!(
+                    "The PA output power setpoint (W) was sucessfully set to {}.",
+                    set_papower_setpoint_watt_response.power
+                )
             }
             Response::GetPATempResponse(get_patemp_response) => {
                 format!(
